@@ -2,11 +2,12 @@ import io
 import os
 import re
 import shutil
+import subprocess
+import sys
 import tempfile
 import zipfile
 from urllib.parse import unquote
 
-import yt_dlp
 from flask import Flask, jsonify, render_template, request, send_file
 from flask_cors import CORS
 
@@ -58,36 +59,22 @@ def write_cookies_file(path: str) -> bool:
     return True
 
 
-def download_via_ytdlp(url: str, target_dir: str, shortcode: str) -> None:
+def download_via_gallery_dl(url: str, target_dir: str) -> tuple[int, str]:
     cookies_path = os.path.join(target_dir, "_cookies.txt")
     has_cookies = write_cookies_file(cookies_path)
 
-    out_template = os.path.join(target_dir, f"{shortcode}_%(autonumber)02d.%(ext)s")
-
-    ydl_opts = {
-        "outtmpl": out_template,
-        "autonumber_start": 1,
-        "quiet": True,
-        "no_warnings": True,
-        "noprogress": True,
-        "format": "best",
-        "noplaylist": False,
-        "writeinfojson": False,
-        "writedescription": True,
-        "writethumbnail": False,
-        "ignoreerrors": False,
-        "user_agent": (
-            "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) "
-            "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1 "
-            "Instagram 327.0.0.39.93 (iPhone15,3; iOS 17_4; en_US; en; scale=3.00; 1290x2796; 615279337)"
-        ),
-    }
+    cmd = [
+        sys.executable, "-m", "gallery_dl",
+        "-D", target_dir,
+        "--filename", "{num:>02}.{extension}",
+        "--no-mtime",
+    ]
     if has_cookies:
-        ydl_opts["cookiefile"] = cookies_path
+        cmd.extend(["--cookies", cookies_path])
+    cmd.append(url)
 
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.extract_info(url, download=True)
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
     finally:
         if os.path.exists(cookies_path):
             try:
@@ -95,31 +82,29 @@ def download_via_ytdlp(url: str, target_dir: str, shortcode: str) -> None:
             except OSError:
                 pass
 
+    return proc.returncode, (proc.stderr.strip() or proc.stdout.strip())
 
-def renumber_slides(post_dir: str, shortcode: str) -> None:
-    entries = []
-    for name in os.listdir(post_dir):
-        path = os.path.join(post_dir, name)
-        if not os.path.isfile(path):
-            continue
-        stem, ext = os.path.splitext(name)
-        if ext.lower() not in MEDIA_EXTS:
-            continue
-        m = re.search(r"_(\d+)$", stem)
-        idx = int(m.group(1)) if m else 0
-        entries.append((idx, name, ext.lower()))
 
-    if not entries:
+def collect_media(target_dir: str) -> list[str]:
+    return [
+        f for f in os.listdir(target_dir)
+        if not f.startswith("_") and os.path.splitext(f)[1].lower() in MEDIA_EXTS
+    ]
+
+
+def renumber_slides(target_dir: str) -> None:
+    files = sorted(collect_media(target_dir))
+    if not files:
         return
-
-    entries.sort(key=lambda e: e[0])
-    width = max(2, len(str(len(entries))))
-
-    for slot, (_, original, ext) in enumerate(entries, start=1):
+    width = max(2, len(str(len(files))))
+    for slot, name in enumerate(files, start=1):
+        ext = os.path.splitext(name)[1].lower()
         new_name = f"{str(slot).zfill(width)}{ext}"
-        src = os.path.join(post_dir, original)
-        dst = os.path.join(post_dir, new_name)
-        if src != dst and not os.path.exists(dst):
+        if new_name == name:
+            continue
+        src = os.path.join(target_dir, name)
+        dst = os.path.join(target_dir, new_name)
+        if not os.path.exists(dst):
             os.replace(src, dst)
 
 
@@ -153,28 +138,27 @@ def download():
     workdir = tempfile.mkdtemp(prefix="ig_")
     try:
         try:
-            download_via_ytdlp(url, workdir, shortcode)
-        except yt_dlp.utils.DownloadError as e:
-            msg = str(e)
-            low = msg.lower()
-            if "login" in low or "private" in low or "logged" in low:
-                return jsonify({"error": "Esta publicación requiere login o es privada. Verifica que IG_SESSIONID esté actualizado en Render."}), 401
-            if "rate" in low or "wait" in low or "429" in msg:
-                return jsonify({"error": "Instagram aplicó rate-limit. Espera unos minutos y reintenta."}), 429
-            if "404" in msg or "not found" in low:
-                return jsonify({"error": "Publicación no encontrada o eliminada."}), 404
-            return jsonify({"error": f"Error de yt-dlp: {msg[:300]}"}), 500
+            rc, output = download_via_gallery_dl(url, workdir)
+        except subprocess.TimeoutExpired:
+            return jsonify({"error": "Timeout: la descarga tardó más de 120s."}), 504
         except Exception as e:
-            return jsonify({"error": f"Error al descargar: {str(e)[:300]}"}), 500
+            return jsonify({"error": f"Error inesperado: {str(e)[:300]}"}), 500
 
-        media_files = [
-            f for f in os.listdir(workdir)
-            if not f.startswith("_") and os.path.splitext(f)[1].lower() in MEDIA_EXTS
-        ]
-        if not media_files:
-            return jsonify({"error": "yt-dlp no devolvió archivos descargables."}), 500
+        if rc != 0:
+            low = output.lower()
+            if "login" in low or "private" in low or "401" in output:
+                return jsonify({"error": "Login requerido o post privado. Verifica que IG_SESSIONID esté actualizado en Render."}), 401
+            if "429" in output or "rate" in low or "throttl" in low:
+                return jsonify({"error": "Instagram aplicó rate-limit. Espera unos minutos."}), 429
+            if "404" in output or "not found" in low or "does not exist" in low:
+                return jsonify({"error": "Publicación no encontrada o eliminada."}), 404
+            return jsonify({"error": f"gallery-dl falló: {output[:400]}"}), 500
 
-        renumber_slides(workdir, shortcode)
+        media = collect_media(workdir)
+        if not media:
+            return jsonify({"error": "No se descargó ningún archivo."}), 500
+
+        renumber_slides(workdir)
         zip_buffer = zip_directory(workdir)
         return send_file(
             zip_buffer,
