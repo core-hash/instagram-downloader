@@ -314,48 +314,84 @@ def index():
     return render_template("index.html")
 
 
+def _process_one(url: str, workdir: str) -> tuple[bool, str, str | None]:
+    """Download one URL into workdir. Returns (success, message, basename_used)."""
+    if not url or not re.match(r"^https?://", url):
+        return False, "URL inválida", None
+    for pattern, msg in UNSUPPORTED_PATTERNS:
+        if re.search(pattern, url, re.IGNORECASE):
+            return False, msg, None
+
+    platform, primary_tool = detect_platform(url)
+    fallback_id = extract_short_id(url)
+
+    try:
+        if primary_tool == "yt-dlp":
+            rc, output = download_via_ytdlp(url, workdir)
+            if rc != 0 or not collect_media(workdir):
+                rc2, out2 = download_via_gallery_dl(url, workdir)
+                if rc2 == 0 and collect_media(workdir):
+                    rc, output = rc2, out2
+        else:
+            rc, output = download_via_gallery_dl(url, workdir)
+            if rc != 0 or not collect_media(workdir):
+                rc2, out2 = download_via_ytdlp(url, workdir)
+                if rc2 == 0 and collect_media(workdir):
+                    rc, output = rc2, out2
+    except subprocess.TimeoutExpired:
+        return False, "Timeout", None
+    except Exception as e:
+        return False, f"Error: {str(e)[:200]}", None
+
+    media = collect_media(workdir)
+    if not media:
+        return False, output[:200] if output else "Sin archivos", None
+
+    meta = find_metadata(workdir)
+    basename = derive_basename(meta, fallback_id)
+    return True, "ok", basename
+
+
 @app.route("/api/download", methods=["POST"])
 def download():
     data = request.get_json(silent=True) or request.form
-    url = (data.get("url") or "").strip()
-    if not url or not re.match(r"^https?://", url):
+
+    urls = data.get("urls")
+    if isinstance(urls, list) and urls:
+        urls = [u.strip() for u in urls if isinstance(u, str) and u.strip()]
+    elif data.get("url"):
+        urls = [data["url"].strip()]
+    else:
+        urls = []
+
+    if not urls:
+        return jsonify({"error": "URL no válida. Pega un link completo (con https://)."}), 400
+
+    if len(urls) > 20:
+        return jsonify({"error": "Máximo 20 links por descarga."}), 413
+
+    if len(urls) == 1:
+        return _single_download(urls[0])
+    return _bulk_download(urls)
+
+
+def _single_download(url: str):
+    if not re.match(r"^https?://", url):
         return jsonify({"error": "URL no válida. Pega un link completo (con https://)."}), 400
 
     for pattern, msg in UNSUPPORTED_PATTERNS:
         if re.search(pattern, url, re.IGNORECASE):
             return jsonify({"error": f"{msg} Plataformas activas: Instagram, TikTok, X, Reddit, Pinterest."}), 422
 
-    platform, primary_tool = detect_platform(url)
-    fallback_id = extract_short_id(url)
-
     workdir = tempfile.mkdtemp(prefix="muse_")
     try:
-        try:
-            if primary_tool == "yt-dlp":
-                rc, output = download_via_ytdlp(url, workdir)
-                if rc != 0 or not collect_media(workdir):
-                    rc2, out2 = download_via_gallery_dl(url, workdir)
-                    if rc2 == 0 and collect_media(workdir):
-                        rc, output = rc2, out2
-            else:
-                rc, output = download_via_gallery_dl(url, workdir)
-                if rc != 0 or not collect_media(workdir):
-                    rc2, out2 = download_via_ytdlp(url, workdir)
-                    if rc2 == 0 and collect_media(workdir):
-                        rc, output = rc2, out2
-        except subprocess.TimeoutExpired:
-            return jsonify({"error": "Timeout: la descarga tardó demasiado."}), 504
-        except Exception as e:
-            return jsonify({"error": f"Error inesperado: {str(e)[:300]}"}), 500
-
-        media = collect_media(workdir)
-        if not media:
-            err, code = map_error_response(output, platform)
+        ok, msg, basename = _process_one(url, workdir)
+        if not ok:
+            platform, _ = detect_platform(url)
+            err, code = map_error_response(msg, platform)
             return jsonify(err), code
 
-        meta = find_metadata(workdir)
-        basename = derive_basename(meta, fallback_id)
-
+        media = collect_media(workdir)
         if len(media) == 1:
             single = media[0]
             ext = os.path.splitext(single)[1].lower()
@@ -378,6 +414,57 @@ def download():
         )
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
+
+
+def _bulk_download(urls: list[str]):
+    bulkdir = tempfile.mkdtemp(prefix="muse_bulk_")
+    failures = []
+    successes = 0
+    try:
+        for idx, url in enumerate(urls, start=1):
+            sub = os.path.join(bulkdir, f"item_{idx:02d}")
+            os.makedirs(sub, exist_ok=True)
+            ok, msg, basename = _process_one(url, sub)
+            if not ok:
+                failures.append({"url": url, "error": msg})
+                shutil.rmtree(sub, ignore_errors=True)
+                continue
+            renumber_slides(sub)
+            target_name = basename or f"item_{idx:02d}"
+            new_dir = os.path.join(bulkdir, target_name)
+            counter = 2
+            while os.path.exists(new_dir):
+                new_dir = os.path.join(bulkdir, f"{target_name}_{counter}")
+                counter += 1
+            os.rename(sub, new_dir)
+            successes += 1
+
+        if successes == 0:
+            return jsonify({
+                "error": "Ninguna descarga tuvo éxito.",
+                "details": failures[:5],
+            }), 422
+
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+            for root, _, files in os.walk(bulkdir):
+                for name in files:
+                    if name.startswith("_") or name.endswith(".json"):
+                        continue
+                    full = os.path.join(root, name)
+                    arcname = os.path.relpath(full, bulkdir)
+                    zf.write(full, arcname)
+        buffer.seek(0)
+
+        filename = f"muse_bulk_{successes}_de_{len(urls)}.zip"
+        return send_file(
+            buffer,
+            mimetype="application/zip",
+            as_attachment=True,
+            download_name=filename,
+        )
+    finally:
+        shutil.rmtree(bulkdir, ignore_errors=True)
 
 
 @app.route("/healthz")

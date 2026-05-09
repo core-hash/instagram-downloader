@@ -1,0 +1,7 @@
+name = "muse-co"
+compatibility_date = "2024-09-01"
+pages_build_output_dir = "web"
+
+[[kv_namespaces]]
+binding = "MUSE_STATS"
+id = "4ae04b2772f7411095c586a8ea83806b"
