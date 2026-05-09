@@ -148,24 +148,9 @@ except Exception:
     FFMPEG_PATH = None
 
 
-def write_yt_cookies_file(path: str) -> bool:
-    raw = os.environ.get("YT_COOKIES", "").strip()
-    if not raw:
-        return False
-    if not raw.startswith("# Netscape"):
-        raw = NETSCAPE_HEADER + raw
-    with open(path, "w") as f:
-        f.write(raw)
-        if not raw.endswith("\n"):
-            f.write("\n")
-    return True
-
-
 def download_via_ytdlp(url: str, target_dir: str, audio_only: bool = False, max_height: int | None = None) -> tuple[int, str]:
+    """yt-dlp downloader. Used primarily for TikTok (with multi-attempt fallbacks)."""
     out_template = os.path.join(target_dir, "%(autonumber)02d.%(ext)s")
-    cookies_path = os.path.join(target_dir, "_yt_cookies.txt")
-    has_yt_cookies = write_yt_cookies_file(cookies_path)
-
     is_tt = _is_tiktok(url)
     ua = TIKTOK_USER_AGENT if is_tt else YT_USER_AGENT
 
@@ -184,17 +169,10 @@ def download_via_ytdlp(url: str, target_dir: str, audio_only: bool = False, max_
         "--retries", "3",
         "--fragment-retries", "3",
     ]
-    # TikTok needs specific extractor args; YouTube works best with yt-dlp defaults (multi-client fallback)
     if is_tt:
         cmd.extend([
             "--extractor-args",
             "tiktok:app_name=trill;tiktok:app_version=34.1.2;tiktok:manifest_app_version=2023408050",
-        ])
-    else:
-        # YouTube: use tv_embedded + web (works around iOS client format-stripping)
-        cmd.extend([
-            "--extractor-args",
-            "youtube:player_client=tv_embedded,web,mweb;formats=missing_pot",
         ])
     if FFMPEG_PATH:
         cmd.extend(["--ffmpeg-location", FFMPEG_PATH])
@@ -207,8 +185,6 @@ def download_via_ytdlp(url: str, target_dir: str, audio_only: bool = False, max_
             "--audio-quality", "0",
         ])
     elif max_height:
-        # Permissive selector: works with any extractor output (HLS, DASH, progressive).
-        # -S sorts to PREFER closest match to max_height without filtering everything out.
         cmd.extend([
             "-f", "bv*+ba/b",
             "-S", f"res:{max_height},vcodec:h264,acodec:m4a",
@@ -221,23 +197,12 @@ def download_via_ytdlp(url: str, target_dir: str, audio_only: bool = False, max_
             "--merge-output-format", "mp4",
         ])
 
-    if has_yt_cookies:
-        cmd.extend(["--cookies", cookies_path])
     cmd.append(url)
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
 
-    try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
-    finally:
-        if os.path.exists(cookies_path):
-            try:
-                os.remove(cookies_path)
-            except OSError:
-                pass
-
-    # If TikTok failed with status 0 / not available, retry with web client args
+    # TikTok-specific retry with alt API host if the first attempt fails
     if is_tt and proc.returncode != 0 and ("status code 0" in proc.stderr.lower() or "not available" in proc.stderr.lower()):
         cmd_retry = list(cmd)
-        # Replace extractor-args
         for i, a in enumerate(cmd_retry):
             if a == "--extractor-args":
                 cmd_retry[i + 1] = "tiktok:api_hostname=api22-normal-c-useast2a.tiktokv.com"
@@ -610,109 +575,6 @@ def _bulk_download(urls: list[str], audio_only: bool = False, max_height: int | 
         )
     finally:
         shutil.rmtree(bulkdir, ignore_errors=True)
-
-
-@app.route("/api/probe", methods=["POST", "OPTIONS"])
-def probe():
-    """Probe a URL with yt-dlp --dump-json to find available resolutions."""
-    if request.method == "OPTIONS":
-        return ("", 204)
-
-    data = request.get_json(silent=True) or request.form
-    url = (data.get("url") or "").strip()
-    if not url or not re.match(r"^https?://", url):
-        return jsonify({"error": "URL inválida"}), 400
-
-    platform, primary_tool = detect_platform(url)
-    # Only probe for yt-dlp-driven platforms (YouTube mainly)
-    if primary_tool != "yt-dlp":
-        return jsonify({"platform": platform, "max_height": None, "supports_audio": True}), 200
-
-    cookies_path = tempfile.mktemp(suffix="_yt_probe.txt")
-    has_yt_cookies = write_yt_cookies_file(cookies_path)
-    _dbg_cookies_size = os.path.getsize(cookies_path) if os.path.exists(cookies_path) else 0
-    _dbg_cookies_lines = 0
-    _dbg_cookies_domains = []
-    _dbg_cookie_names = []
-    try:
-        if _dbg_cookies_size > 0:
-            with open(cookies_path) as _f:
-                _content = _f.read()
-                _dbg_cookies_lines = _content.count('\n')
-                _domains = set()
-                for line in _content.splitlines():
-                    if line.startswith('#') or not line.strip():
-                        continue
-                    parts = line.split('\t')
-                    if len(parts) >= 7:
-                        _domains.add(parts[0])
-                        _dbg_cookie_names.append(parts[5])
-                _dbg_cookies_domains = sorted(_domains)[:5]
-    except Exception:
-        pass
-    is_tt = _is_tiktok(url)
-    ua = TIKTOK_USER_AGENT if is_tt else YT_USER_AGENT
-    extractor_args = (
-        "tiktok:app_name=trill;tiktok:app_version=34.1.2"
-        if is_tt
-        else "youtube:player_client=mweb,android,web,tv_embedded,android_music;formats=missing_pot;player_skip=webpage"
-    )
-
-    cmd = [
-        sys.executable, "-m", "yt_dlp",
-        "-J", "--no-warnings", "--no-playlist",
-        "--extractor-args", extractor_args,
-        "--user-agent", ua,
-        "--socket-timeout", "15",
-    ]
-    if has_yt_cookies:
-        cmd.extend(["--cookies", cookies_path])
-    cmd.append(url)
-
-    # Capture yt-dlp version for debug
-    try:
-        _ver_proc = subprocess.run([sys.executable, "-m", "yt_dlp", "--version"],
-                                    capture_output=True, text=True, timeout=5)
-        _ytdlp_ver = _ver_proc.stdout.strip()
-    except Exception:
-        _ytdlp_ver = "unknown"
-
-    try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-    except subprocess.TimeoutExpired:
-        return jsonify({"platform": platform, "max_height": None, "error": "timeout"}), 200
-    finally:
-        if os.path.exists(cookies_path):
-            try:
-                os.remove(cookies_path)
-            except OSError:
-                pass
-
-    if proc.returncode != 0 or not proc.stdout.strip():
-        return jsonify({"platform": platform, "max_height": None, "error": "probe_failed"}), 200
-
-    try:
-        info = json.loads(proc.stdout)
-    except json.JSONDecodeError:
-        return jsonify({"platform": platform, "max_height": None, "error": "bad_json"}), 200
-
-    formats = info.get("formats", []) or []
-    max_h = 0
-    has_audio = False
-    for f in formats:
-        h = f.get("height") or 0
-        if h and h > max_h:
-            max_h = h
-        if f.get("acodec") and f.get("acodec") != "none":
-            has_audio = True
-
-    return jsonify({
-        "platform": platform,
-        "max_height": max_h or None,
-        "supports_audio": has_audio,
-        "title": info.get("title", "")[:120],
-        "duration": info.get("duration"),
-    }), 200
 
 
 @app.route("/healthz")
