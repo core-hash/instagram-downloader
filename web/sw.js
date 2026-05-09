@@ -1,7 +1,7 @@
 // Minimal service worker — solo para que Muse sea instalable como PWA.
 // No cacheamos respuestas porque las descargas son siempre frescas.
-const CACHE = 'muse-shell-v1';
-const SHELL = ['/', '/icon-192.png', '/icon-512.png'];
+const CACHE = 'muse-shell-v3';
+const SHELL = ['/', '/icon-192.png?v=3', '/icon-512.png?v=3', '/apple-touch-icon.png?v=3'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).catch(() => {}));
