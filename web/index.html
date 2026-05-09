@@ -675,10 +675,9 @@
 
     /* === Features grid === */
     .features {
-      display: grid; grid-template-columns: 1fr; gap: 12px;
+      display: grid; grid-template-columns: 1fr; gap: 14px;
     }
     @media (min-width: 520px) { .features { grid-template-columns: repeat(2, 1fr); } }
-    @media (min-width: 768px) { .features { grid-template-columns: repeat(3, 1fr); } }
     .feat {
       padding: 22px;
       background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
@@ -1391,34 +1390,24 @@
     <p class="section-desc" data-i18n="features_desc">Detalles que las otras webs no cuidan, y que sí importan cuando descargas en serio.</p>
     <div class="features">
       <div class="feat">
-        <svg class="ico"><use href="#i-archive"/></svg>
-        <h3 data-i18n="f1_t">Un archivo o un ZIP</h3>
-        <p data-i18n="f1_d">Una imagen sola se descarga directa. Carrusel se entrega como ZIP organizado y numerado.</p>
-      </div>
-      <div class="feat">
-        <svg class="ico"><use href="#i-tag"/></svg>
-        <h3 data-i18n="f2_t">Nombres inteligentes</h3>
-        <p data-i18n="f2_d">Cada descarga lleva el autor, la fecha y las primeras palabras del caption.</p>
-      </div>
-      <div class="feat">
         <svg class="ico"><use href="#i-sparkle"/></svg>
-        <h3 data-i18n="f3_t">Calidad original</h3>
-        <p data-i18n="f3_d">Bajamos la versión más alta disponible. Sin recompresión.</p>
+        <h3 data-i18n="f1_t">Tu próxima referencia</h3>
+        <p data-i18n="f1_d">Lo que viste y te movió ya es tuyo. Construye el moodboard que te va a inspirar tu próxima idea.</p>
       </div>
       <div class="feat">
         <svg class="ico"><use href="#i-noads"/></svg>
-        <h3 data-i18n="f4_t">Sin marca de agua</h3>
-        <p data-i18n="f4_d">El archivo llega como el creador lo subió. Sin overlays.</p>
-      </div>
-      <div class="feat">
-        <svg class="ico"><use href="#i-shield"/></svg>
-        <h3 data-i18n="f5_t">Cero almacenamiento</h3>
-        <p data-i18n="f5_d">No guardamos nada. Tu archivo se borra del servidor al instante.</p>
+        <h3 data-i18n="f2_t">Calidad pixel-perfect</h3>
+        <p data-i18n="f2_d">Resolución original, audio sin recompresión, sin marca de agua. Listo para reeditar, samplear o reposear.</p>
       </div>
       <div class="feat">
         <svg class="ico"><use href="#i-zap"/></svg>
-        <h3 data-i18n="f6_t">Sin login, sin cuenta</h3>
-        <p data-i18n="f6_d">Ni email ni signup. Pega y descarga. Punto.</p>
+        <h3 data-i18n="f3_t">Cero fricción</h3>
+        <p data-i18n="f3_d">Sin cuenta, sin login, sin anuncios. Tres segundos del link al archivo en tu device.</p>
+      </div>
+      <div class="feat">
+        <svg class="ico"><use href="#i-shield"/></svg>
+        <h3 data-i18n="f4_t">Tus descargas son tuyas</h3>
+        <p data-i18n="f4_d">No guardamos absolutamente nada. Sin tracking, sin historial, sin que nadie sepa qué te inspira.</p>
       </div>
     </div>
   </section>
@@ -1621,18 +1610,14 @@
       features_eyebrow: "Por qué Muse",
       features_title: "Pensado para creadores.",
       features_desc: "Detalles que las otras webs no cuidan, y que sí importan cuando descargas en serio.",
-      f1_t: "Un archivo o un ZIP",
-      f1_d: "Una imagen sola se descarga directa. Carrusel se entrega como ZIP organizado y numerado.",
-      f2_t: "Nombres inteligentes",
-      f2_d: "Cada descarga lleva el autor, la fecha y las primeras palabras del caption.",
-      f3_t: "Calidad original",
-      f3_d: "Bajamos la versión más alta disponible. Sin recompresión.",
-      f4_t: "Sin marca de agua",
-      f4_d: "El archivo llega como el creador lo subió. Sin overlays.",
-      f5_t: "Cero almacenamiento",
-      f5_d: "No guardamos nada. Tu archivo se borra del servidor al instante.",
-      f6_t: "Sin login, sin cuenta",
-      f6_d: "Ni email ni signup. Pega y descarga. Punto.",
+      f1_t: "Tu próxima referencia",
+      f1_d: "Lo que viste y te movió ya es tuyo. Construye el moodboard que te va a inspirar tu próxima idea.",
+      f2_t: "Calidad pixel-perfect",
+      f2_d: "Resolución original, audio sin recompresión, sin marca de agua. Listo para reeditar, samplear o reposear.",
+      f3_t: "Cero fricción",
+      f3_d: "Sin cuenta, sin login, sin anuncios. Tres segundos del link al archivo en tu device.",
+      f4_t: "Tus descargas son tuyas",
+      f4_d: "No guardamos absolutamente nada. Sin tracking, sin historial, sin que nadie sepa qué te inspira.",
       credit_eyebrow: "Una app de",
       credit_agency_tag: "Agencia de Inteligencia Artificial",
       credit_pitch: "Construimos apps con IA para marcas y creadores. Muse es solo el comienzo. ¿Tienes una idea? Hagámosla realidad.",
@@ -1730,18 +1715,14 @@
       features_eyebrow: "Why Muse",
       features_title: "Built for creators.",
       features_desc: "Details other sites overlook, that matter when you download seriously.",
-      f1_t: "One file or a ZIP",
-      f1_d: "A single image downloads directly. A carousel comes as an organized, numbered ZIP.",
-      f2_t: "Smart filenames",
-      f2_d: "Every download includes the author, the date and the first words of the caption.",
-      f3_t: "Original quality",
-      f3_d: "We grab the highest version available. No recompression.",
-      f4_t: "No watermark",
-      f4_d: "The file arrives as the creator uploaded it. No overlays.",
-      f5_t: "Zero storage",
-      f5_d: "We keep nothing. Your file is wiped from the server instantly.",
-      f6_t: "No login, no account",
-      f6_d: "No email, no signup. Paste and download. Done.",
+      f1_t: "Your next reference",
+      f1_d: "What moved you is now yours. Build the moodboard that will inspire your next idea.",
+      f2_t: "Pixel-perfect quality",
+      f2_d: "Original resolution, audio without recompression, no watermark. Ready to re-edit, sample, or repost.",
+      f3_t: "Zero friction",
+      f3_d: "No account, no login, no ads. Three seconds from link to file on your device.",
+      f4_t: "Your downloads are yours",
+      f4_d: "We keep absolutely nothing. No tracking, no history, no one watching what inspires you.",
       credit_eyebrow: "An app by",
       credit_agency_tag: "Artificial Intelligence Agency",
       credit_pitch: "We build AI apps for brands and creators. Muse is just the start. Got an idea? Let's make it real.",
@@ -1993,6 +1974,7 @@
       showToast(t('pasted'));
       updateBulkUI();
       refreshInputBtn();
+      refreshFormatChips();
     } catch (e) {
       showToast(t('paste_invalid'));
     }
@@ -2003,6 +1985,7 @@
     urlEl.focus();
     refreshInputBtn();
     updateBulkUI();
+    refreshFormatChips();
     if (status.classList.contains('err')) {
       status.className = 'status';
       status.textContent = '';
