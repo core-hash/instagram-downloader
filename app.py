@@ -309,6 +309,47 @@ def collect_media(target_dir: str) -> list[str]:
     )
 
 
+def _clean_media_only(workdir: str) -> None:
+    """Remove media files (keep metadata JSON, cookies, etc.)."""
+    for f in list(os.listdir(workdir)):
+        if f.startswith("_") or f.endswith(".json"):
+            continue
+        try:
+            os.remove(os.path.join(workdir, f))
+        except OSError:
+            pass
+
+
+def _convert_videos_to_mp3(workdir: str) -> bool:
+    """Convert any video files in workdir to MP3 using ffmpeg. Returns True on success."""
+    if not FFMPEG_PATH:
+        return False
+    converted = False
+    for f in list(os.listdir(workdir)):
+        if f.startswith("_") or f.endswith(".json"):
+            continue
+        ext = os.path.splitext(f)[1].lower()
+        if ext in (".mp4", ".mov", ".webm", ".mkv", ".m4a"):
+            vpath = os.path.join(workdir, f)
+            mpath = os.path.splitext(vpath)[0] + ".mp3"
+            try:
+                subprocess.run(
+                    [FFMPEG_PATH, "-i", vpath, "-vn",
+                     "-acodec", "libmp3lame", "-q:a", "2",
+                     "-y", "-loglevel", "error", mpath],
+                    capture_output=True, timeout=60, check=True,
+                )
+                if os.path.exists(mpath) and os.path.getsize(mpath) > 0:
+                    try:
+                        os.remove(vpath)
+                    except OSError:
+                        pass
+                    converted = True
+            except Exception:
+                pass
+    return converted
+
+
 def renumber_slides(target_dir: str) -> None:
     files = collect_media(target_dir)
     if not files:
@@ -380,9 +421,27 @@ def _process_one(url: str, workdir: str, audio_only: bool = False) -> tuple[bool
     fallback_id = extract_short_id(url)
 
     try:
-        # Audio-only (MP3) ALWAYS goes through yt-dlp regardless of platform default.
         if audio_only:
+            # MP3 path: try yt-dlp -x first (efficient, audio-only).
+            # If that fails, download a video by ANY means and extract audio with ffmpeg.
             rc, output = download_via_ytdlp(url, workdir, audio_only=True)
+            has_audio = any(f.lower().endswith(".mp3") or f.lower().endswith(".m4a")
+                            for f in collect_media(workdir))
+            if rc != 0 or not has_audio:
+                _clean_media_only(workdir)
+                # Fallback A: gallery-dl video → ffmpeg → MP3
+                rc2, out2 = download_via_gallery_dl(url, workdir)
+                if rc2 == 0 and collect_media(workdir) and _convert_videos_to_mp3(workdir):
+                    rc, output = 0, "ok"
+                else:
+                    _clean_media_only(workdir)
+                    # Fallback B: yt-dlp video → ffmpeg → MP3
+                    rc3, out3 = download_via_ytdlp(url, workdir, audio_only=False)
+                    if rc3 == 0 and collect_media(workdir) and _convert_videos_to_mp3(workdir):
+                        rc, output = 0, "ok"
+                    else:
+                        rc = rc3 if rc3 else (rc2 if rc2 else rc)
+                        output = out3 or out2 or output
         elif primary_tool == "yt-dlp":
             rc, output = download_via_ytdlp(url, workdir)
             if rc != 0 or not collect_media(workdir):
