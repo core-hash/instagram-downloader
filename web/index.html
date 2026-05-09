@@ -646,6 +646,138 @@
       width: 100%;
     }
 
+    /* === Credit card === */
+    .credit-card {
+      position: relative;
+      margin: 96px auto 0;
+      padding: 48px 32px;
+      background:
+        radial-gradient(800px 300px at 50% -20%, rgba(244, 114, 182, 0.18), transparent 60%),
+        linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      overflow: hidden;
+      text-align: center;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+    }
+    .credit-card::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: 24px;
+      padding: 1px;
+      background: linear-gradient(135deg, rgba(244, 114, 182, 0.5), transparent 40%, rgba(167, 139, 250, 0.3) 60%, transparent 90%);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+    .credit-sparkle {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      opacity: 0.10;
+      filter: blur(0.5px);
+      pointer-events: none;
+    }
+    .credit-sparkle.left {
+      top: -40px;
+      left: -40px;
+      transform: rotate(-15deg);
+    }
+    .credit-sparkle.right {
+      bottom: -40px;
+      right: -40px;
+      transform: rotate(20deg);
+    }
+    .credit-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+      margin: 0 0 6px;
+    }
+    .credit-name {
+      font-size: clamp(40px, 8vw, 72px);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      margin: 0 0 14px;
+      line-height: 1;
+    }
+    .credit-name a {
+      color: inherit;
+      text-decoration: none;
+      background: var(--grad-h);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      transition: filter 0.2s;
+    }
+    .credit-name a:hover { filter: brightness(1.15); }
+    .credit-tagline {
+      font-size: clamp(15px, 2vw, 18px);
+      color: var(--muted);
+      margin: 0 0 28px;
+      font-weight: 500;
+    }
+    .credit-tagline strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+    .credit-tagline .agency-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      margin-left: 6px;
+      background: linear-gradient(135deg, rgba(167, 139, 250, 0.18), rgba(251, 191, 36, 0.14));
+      border: 1px solid rgba(167, 139, 250, 0.3);
+      color: var(--text);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      vertical-align: 2px;
+    }
+    .credit-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .credit-buttons a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .cta-credit {
+      background: var(--text);
+      color: #0a0a0f;
+    }
+    .cta-credit:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 28px rgba(245, 245, 247, 0.18);
+    }
+    .cta-agency {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .cta-agency:hover {
+      border-color: var(--violet);
+      background: rgba(167, 139, 250, 0.08);
+    }
+    .cta-credit svg, .cta-agency svg {
+      width: 16px; height: 16px;
+    }
+
     /* === Footer === */
     footer {
       max-width: 920px;
@@ -908,6 +1040,29 @@
     </div>
   </section>
 
+  <section class="credit-card" id="credit">
+    <svg class="credit-sparkle left" viewBox="0 0 100 100"><use href="#muse-sparkle"/></svg>
+    <svg class="credit-sparkle right" viewBox="0 0 100 100"><use href="#muse-sparkle"/></svg>
+    <p class="credit-eyebrow">Diseño · UI · Marca</p>
+    <h2 class="credit-name">
+      <a href="https://www.instagram.com/dariomz" target="_blank" rel="noopener">x @dariomz</a>
+    </h2>
+    <p class="credit-tagline">
+      Pautame en <strong>Big Bang Brand</strong>
+      <span class="agency-tag">Agencia IA</span>
+    </p>
+    <div class="credit-buttons">
+      <a class="cta-credit" href="https://www.instagram.com/dariomz" target="_blank" rel="noopener">
+        <svg><use href="#p-instagram"/></svg>
+        Ver mi trabajo
+      </a>
+      <a class="cta-agency" href="https://www.instagram.com/bigbangbrand" target="_blank" rel="noopener">
+        <svg><use href="#i-zap"/></svg>
+        Conocer Big Bang Brand
+      </a>
+    </div>
+  </section>
+
   <section class="section" id="faq">
     <div class="section-eyebrow">FAQ</div>
     <h2 class="section-title">Preguntas frecuentes.</h2>
@@ -967,10 +1122,6 @@
     <a href="#faq">FAQ</a>
   </div>
   <div class="foot-right">
-    <a class="credit" href="https://www.instagram.com/dariomz" target="_blank" rel="noopener">
-      <svg class="ico-sm"><use href="#p-instagram"/></svg>
-      Diseño por @dariomz
-    </a>
     <a class="coffee" href="https://buymeacoffee.com/REEMPLAZAME" target="_blank" rel="noopener">
       <svg class="ico"><use href="#i-coffee"/></svg>
       Invítame un café
