@@ -1219,7 +1219,7 @@
 </div>
 
 <div class="install-bar" id="install-bar">
-  <img class="ib-icon" src="/icon-192.png?v=3" alt="">
+  <img class="ib-icon" src="/icon-192.png?v=5" alt="">
   <div class="ib-text">
     <span id="ib-title">Instala Muse en tu celular</span>
     <span class="ib-sub" id="ib-sub">Acceso directo desde tu home</span>
@@ -1490,7 +1490,7 @@
   <div class="ios-modal-card">
     <div class="ios-grabber"></div>
     <div class="ios-modal-header">
-      <img class="app-icon" src="/apple-touch-icon.png?v=3" alt="">
+      <img class="app-icon" src="/apple-touch-icon.png?v=5" alt="">
       <div class="app-meta">
         <h3 data-i18n="ios_title">Instala Muse</h3>
         <div class="app-sub" data-i18n="ios_subtitle">Acceso directo desde tu pantalla de inicio</div>
@@ -2207,10 +2207,33 @@
     }, 600);
   }
 
-  // ============= Service Worker =============
+  // ============= Service Worker (auto-update) =============
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    window.addEventListener('load', async () => {
+      try {
+        const reg = await navigator.serviceWorker.register('/sw.js');
+        // Check for SW update on every load + every 60s while open
+        reg.update().catch(() => {});
+        setInterval(() => reg.update().catch(() => {}), 60000);
+        // When a new SW takes over, reload to get fresh page
+        let refreshed = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshed) return;
+          refreshed = true;
+          window.location.reload();
+        });
+        // When new SW is installed and waiting, tell it to skip waiting → reload
+        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        reg.addEventListener('updatefound', () => {
+          const sw = reg.installing;
+          if (!sw) return;
+          sw.addEventListener('statechange', () => {
+            if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+              sw.postMessage({ type: 'SKIP_WAITING' });
+            }
+          });
+        });
+      } catch {}
     });
   }
 
