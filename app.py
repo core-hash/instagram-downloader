@@ -661,7 +661,15 @@ def probe():
                 pass
 
     if proc.returncode != 0 or not proc.stdout.strip():
-        return jsonify({"platform": platform, "max_height": None, "error": "probe_failed"}), 200
+        return jsonify({
+            "platform": platform,
+            "max_height": None,
+            "error": "probe_failed",
+            "rc": proc.returncode,
+            "stderr": (proc.stderr or "")[-1200:],
+            "cookies_used": has_yt_cookies,
+            "cookies_size": os.path.getsize(cookies_path) if os.path.exists(cookies_path) else 0,
+        }), 200
 
     try:
         info = json.loads(proc.stdout)
