@@ -168,11 +168,6 @@ def download_via_ytdlp(url: str, target_dir: str, audio_only: bool = False, max_
 
     is_tt = _is_tiktok(url)
     ua = TIKTOK_USER_AGENT if is_tt else YT_USER_AGENT
-    extractor_args = (
-        "tiktok:app_name=trill;tiktok:app_version=34.1.2;tiktok:manifest_app_version=2023408050"
-        if is_tt
-        else "youtube:player_client=ios,mweb,web"
-    )
 
     cmd = [
         sys.executable, "-m", "yt_dlp",
@@ -184,12 +179,23 @@ def download_via_ytdlp(url: str, target_dir: str, audio_only: bool = False, max_
         "--no-write-thumbnail",
         "--no-playlist",
         "--restrict-filenames",
-        "--extractor-args", extractor_args,
         "--user-agent", ua,
         "--add-header", "Accept-Language:es-ES,es;q=0.9,en;q=0.8",
         "--retries", "3",
         "--fragment-retries", "3",
     ]
+    # TikTok needs specific extractor args; YouTube works best with yt-dlp defaults (multi-client fallback)
+    if is_tt:
+        cmd.extend([
+            "--extractor-args",
+            "tiktok:app_name=trill;tiktok:app_version=34.1.2;tiktok:manifest_app_version=2023408050",
+        ])
+    else:
+        # YouTube: use tv_embedded + web (works around iOS client format-stripping)
+        cmd.extend([
+            "--extractor-args",
+            "youtube:player_client=tv_embedded,web,mweb;formats=missing_pot",
+        ])
     if FFMPEG_PATH:
         cmd.extend(["--ffmpeg-location", FFMPEG_PATH])
 
@@ -627,7 +633,7 @@ def probe():
     extractor_args = (
         "tiktok:app_name=trill;tiktok:app_version=34.1.2"
         if is_tt
-        else "youtube:player_client=ios,mweb,web"
+        else "youtube:player_client=tv_embedded,web,mweb;formats=missing_pot"
     )
 
     cmd = [
