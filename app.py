@@ -25,20 +25,47 @@ CORS(
     expose_headers=["Content-Disposition"],
 )
 
-MEDIA_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov", ".heic", ".m4a"}
+MEDIA_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov", ".heic", ".m4a", ".gif"}
 NETSCAPE_HEADER = "# Netscape HTTP Cookie File\n# Auto-generated.\n\n"
 
+PLATFORM_RULES = [
+    ("instagram", r"instagram\.com|cdninstagram\.com",                    "gallery-dl"),
+    ("tiktok",    r"tiktok\.com|vm\.tiktok\.com",                         "yt-dlp"),
+    ("youtube",   r"youtube\.com|youtu\.be|youtube-nocookie\.com",        "yt-dlp"),
+    ("twitter",   r"twitter\.com|x\.com",                                 "gallery-dl"),
+    ("reddit",    r"reddit\.com|redd\.it",                                "gallery-dl"),
+    ("pinterest", r"pinterest\.|pin\.it",                                 "gallery-dl"),
+    ("facebook",  r"facebook\.com|fb\.watch|fb\.com",                     "yt-dlp"),
+    ("vimeo",     r"vimeo\.com",                                          "yt-dlp"),
+    ("twitch",    r"twitch\.tv|clips\.twitch\.tv",                        "yt-dlp"),
+    ("threads",   r"threads\.net",                                        "gallery-dl"),
+]
 
-def extract_shortcode(url: str) -> str | None:
+
+def detect_platform(url: str) -> tuple[str | None, str]:
     if not url:
-        return None
-    m = re.search(r"instagram\.com/(?:[^/]+/)?(?:p|reel|reels|tv)/([A-Za-z0-9_-]+)", url)
+        return (None, "gallery-dl")
+    for name, pattern, tool in PLATFORM_RULES:
+        if re.search(pattern, url, re.IGNORECASE):
+            return (name, tool)
+    return (None, "gallery-dl")
+
+
+def extract_short_id(url: str) -> str:
+    """Best-effort identifier extraction for filename fallback."""
+    m = re.search(r"/(?:p|reel|reels|tv|status|video|watch|posts|pin)/([A-Za-z0-9_-]+)", url)
     if m:
         return m.group(1)
-    m = re.search(r"instagram\.com/stories/(?:highlights/)?[^/]+/(\d+)", url)
+    m = re.search(r"v=([A-Za-z0-9_-]+)", url)
     if m:
         return m.group(1)
-    return None
+    m = re.search(r"youtu\.be/([A-Za-z0-9_-]+)", url)
+    if m:
+        return m.group(1)
+    m = re.search(r"/(\d+)/?$", url.rstrip("/"))
+    if m:
+        return m.group(1)
+    return "media"
 
 
 def write_cookies_file(path: str) -> bool:
@@ -97,6 +124,33 @@ def download_via_gallery_dl(url: str, target_dir: str) -> tuple[int, str]:
     return proc.returncode, (proc.stderr.strip() or proc.stdout.strip())
 
 
+def download_via_ytdlp(url: str, target_dir: str) -> tuple[int, str]:
+    out_template = os.path.join(target_dir, "%(autonumber)02d.%(ext)s")
+    info_template = os.path.join(target_dir, "info.%(ext)s")
+
+    cmd = [
+        sys.executable, "-m", "yt_dlp",
+        "-o", out_template,
+        "--autonumber-start", "1",
+        "--no-warnings",
+        "--no-progress",
+        "-f", "bestvideo*+bestaudio/best",
+        "--merge-output-format", "mp4",
+        "--write-info-json",
+        "--no-write-thumbnail",
+        "--no-playlist",
+        "--restrict-filenames",
+    ]
+    cmd.append(url)
+
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+    except subprocess.TimeoutExpired:
+        raise
+
+    return proc.returncode, (proc.stderr.strip() or proc.stdout.strip())
+
+
 def safe_chunk(s: str, max_len: int = 60) -> str:
     s = re.sub(r"[^\w\-.]", "_", s).strip("._")
     return s[:max_len] or "x"
@@ -117,7 +171,7 @@ def find_metadata(target_dir: str) -> dict:
         if name.startswith("_") or not name.endswith(".json"):
             continue
         path = os.path.join(target_dir, name)
-        if name == "info.json":
+        if "info" in name.lower():
             candidates.insert(0, path)
         else:
             candidates.append(path)
@@ -133,27 +187,35 @@ def find_metadata(target_dir: str) -> dict:
     return {}
 
 
-def derive_basename(meta: dict, shortcode: str) -> str:
-    username = meta.get("username") if isinstance(meta.get("username"), str) else ""
+def derive_basename(meta: dict, fallback_id: str) -> str:
+    username = ""
+    for key in ("uploader_id", "uploader", "channel", "username", "creator"):
+        v = meta.get(key)
+        if isinstance(v, str) and v:
+            username = v.lstrip("@")
+            break
     if not username:
-        for key in ("owner", "user", "author"):
+        for key in ("owner", "user", "author", "channel_id"):
             owner = meta.get(key)
             if isinstance(owner, dict):
-                username = owner.get("username") or owner.get("name") or ""
+                username = owner.get("username") or owner.get("name") or owner.get("id") or ""
                 if username:
                     break
-            elif isinstance(owner, str):
-                username = owner
-                break
 
-    date_raw = meta.get("date") or meta.get("post_date") or meta.get("created_at") or ""
-    date_str = date_raw[:10] if isinstance(date_raw, str) else ""
+    date_raw = meta.get("date") or meta.get("post_date") or meta.get("upload_date") or ""
+    if isinstance(date_raw, str) and len(date_raw) == 8 and date_raw.isdigit():
+        date_str = f"{date_raw[:4]}-{date_raw[4:6]}-{date_raw[6:8]}"
+    elif isinstance(date_raw, str):
+        date_str = date_raw[:10]
+    else:
+        date_str = ""
 
-    caption = meta.get("description") or meta.get("caption") or meta.get("title") or ""
-    caption_slug = slugify_caption(caption) or shortcode
+    caption = (meta.get("description") or meta.get("caption")
+               or meta.get("title") or meta.get("fulltitle") or "")
+    caption_slug = slugify_caption(caption) or fallback_id
 
     parts = [safe_chunk(p) for p in (username, date_str, caption_slug) if p]
-    return "_".join(parts) if parts else f"instagram_{shortcode}"
+    return "_".join(parts) if parts else f"muse_{fallback_id}"
 
 
 def collect_media(target_dir: str) -> list[str]:
@@ -200,6 +262,19 @@ def file_to_buffer(path: str) -> io.BytesIO:
     return buf
 
 
+def map_error_response(output: str, platform: str | None) -> tuple[dict, int]:
+    low = output.lower()
+    if "login" in low or "private" in low or "401" in output or "logged" in low:
+        return {"error": f"Login requerido o contenido privado en {platform or 'esta plataforma'}."}, 401
+    if "429" in output or "rate" in low or "throttl" in low or "wait" in low:
+        return {"error": "La plataforma aplicó rate-limit. Espera unos minutos."}, 429
+    if "404" in output or "not found" in low or "does not exist" in low or "no such" in low:
+        return {"error": "Publicación no encontrada o eliminada."}, 404
+    if "no video formats" in low or "unable to extract" in low:
+        return {"error": "No se pudo extraer media de este link. Verifica que sea público y soportado."}, 422
+    return {"error": f"Error al descargar: {output[:400]}"}, 500
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -209,35 +284,39 @@ def index():
 def download():
     data = request.get_json(silent=True) or request.form
     url = (data.get("url") or "").strip()
-    shortcode = extract_shortcode(url)
-    if not shortcode:
-        return jsonify({"error": "URL no válida. Usa una URL de post, reel, IGTV o story de Instagram."}), 400
+    if not url or not re.match(r"^https?://", url):
+        return jsonify({"error": "URL no válida. Pega un link completo (con https://)."}), 400
 
-    workdir = tempfile.mkdtemp(prefix="ig_")
+    platform, primary_tool = detect_platform(url)
+    fallback_id = extract_short_id(url)
+
+    workdir = tempfile.mkdtemp(prefix="muse_")
     try:
         try:
-            rc, output = download_via_gallery_dl(url, workdir)
+            if primary_tool == "yt-dlp":
+                rc, output = download_via_ytdlp(url, workdir)
+                if rc != 0 or not collect_media(workdir):
+                    rc2, out2 = download_via_gallery_dl(url, workdir)
+                    if rc2 == 0 and collect_media(workdir):
+                        rc, output = rc2, out2
+            else:
+                rc, output = download_via_gallery_dl(url, workdir)
+                if rc != 0 or not collect_media(workdir):
+                    rc2, out2 = download_via_ytdlp(url, workdir)
+                    if rc2 == 0 and collect_media(workdir):
+                        rc, output = rc2, out2
         except subprocess.TimeoutExpired:
-            return jsonify({"error": "Timeout: la descarga tardó más de 120s."}), 504
+            return jsonify({"error": "Timeout: la descarga tardó demasiado."}), 504
         except Exception as e:
             return jsonify({"error": f"Error inesperado: {str(e)[:300]}"}), 500
 
-        if rc != 0:
-            low = output.lower()
-            if "login" in low or "private" in low or "401" in output:
-                return jsonify({"error": "Login requerido o post privado. Verifica que IG_SESSIONID esté actualizado en Render."}), 401
-            if "429" in output or "rate" in low or "throttl" in low:
-                return jsonify({"error": "Instagram aplicó rate-limit. Espera unos minutos."}), 429
-            if "404" in output or "not found" in low or "does not exist" in low:
-                return jsonify({"error": "Publicación no encontrada o eliminada."}), 404
-            return jsonify({"error": f"gallery-dl falló: {output[:400]}"}), 500
-
         media = collect_media(workdir)
         if not media:
-            return jsonify({"error": "No se descargó ningún archivo."}), 500
+            err, code = map_error_response(output, platform)
+            return jsonify(err), code
 
         meta = find_metadata(workdir)
-        basename = derive_basename(meta, shortcode)
+        basename = derive_basename(meta, fallback_id)
 
         if len(media) == 1:
             single = media[0]
@@ -265,7 +344,7 @@ def download():
 
 @app.route("/healthz")
 def healthz():
-    return {"ok": True}
+    return {"ok": True, "platforms": [name for name, _, _ in PLATFORM_RULES]}
 
 
 if __name__ == "__main__":
