@@ -31,13 +31,13 @@ NETSCAPE_HEADER = "# Netscape HTTP Cookie File\n# Auto-generated.\n\n"
 PLATFORM_RULES = [
     ("instagram", r"instagram\.com|cdninstagram\.com",   "gallery-dl"),
     ("tiktok",    r"tiktok\.com|vm\.tiktok\.com",        "yt-dlp"),
+    ("youtube",   r"youtube\.com|youtu\.be|youtube-nocookie\.com", "yt-dlp"),
     ("twitter",   r"twitter\.com|x\.com",                "gallery-dl"),
     ("reddit",    r"reddit\.com|redd\.it",               "gallery-dl"),
     ("pinterest", r"pinterest\.|pin\.it",                "gallery-dl"),
 ]
 
 UNSUPPORTED_PATTERNS = [
-    (r"youtube\.com|youtu\.be",                          "YouTube no está soportado actualmente."),
     (r"facebook\.com|fb\.watch|fb\.com",                 "Facebook no está soportado actualmente."),
     (r"vimeo\.com",                                      "Vimeo no está soportado actualmente."),
     (r"twitch\.tv",                                      "Twitch no está soportado actualmente."),
@@ -161,7 +161,7 @@ def write_yt_cookies_file(path: str) -> bool:
     return True
 
 
-def download_via_ytdlp(url: str, target_dir: str, audio_only: bool = False) -> tuple[int, str]:
+def download_via_ytdlp(url: str, target_dir: str, audio_only: bool = False, max_height: int | None = None) -> tuple[int, str]:
     out_template = os.path.join(target_dir, "%(autonumber)02d.%(ext)s")
     cookies_path = os.path.join(target_dir, "_yt_cookies.txt")
     has_yt_cookies = write_yt_cookies_file(cookies_path)
@@ -199,6 +199,11 @@ def download_via_ytdlp(url: str, target_dir: str, audio_only: bool = False) -> t
             "-x",
             "--audio-format", "mp3",
             "--audio-quality", "0",
+        ])
+    elif max_height:
+        cmd.extend([
+            "-f", f"bestvideo[height<={max_height}]+bestaudio/best[height<={max_height}]/bestvideo*+bestaudio/best",
+            "--merge-output-format", "mp4",
         ])
     else:
         cmd.extend([
@@ -409,7 +414,7 @@ def index():
     return render_template("index.html")
 
 
-def _process_one(url: str, workdir: str, audio_only: bool = False) -> tuple[bool, str, str | None]:
+def _process_one(url: str, workdir: str, audio_only: bool = False, max_height: int | None = None) -> tuple[bool, str, str | None]:
     """Download one URL into workdir. Returns (success, message, basename_used)."""
     if not url or not re.match(r"^https?://", url):
         return False, "URL inválida", None
@@ -443,7 +448,7 @@ def _process_one(url: str, workdir: str, audio_only: bool = False) -> tuple[bool
                         rc = rc3 if rc3 else (rc2 if rc2 else rc)
                         output = out3 or out2 or output
         elif primary_tool == "yt-dlp":
-            rc, output = download_via_ytdlp(url, workdir)
+            rc, output = download_via_ytdlp(url, workdir, max_height=max_height)
             if rc != 0 or not collect_media(workdir):
                 rc2, out2 = download_via_gallery_dl(url, workdir)
                 if rc2 == 0 and collect_media(workdir):
@@ -451,7 +456,7 @@ def _process_one(url: str, workdir: str, audio_only: bool = False) -> tuple[bool
         else:
             rc, output = download_via_gallery_dl(url, workdir)
             if rc != 0 or not collect_media(workdir):
-                rc2, out2 = download_via_ytdlp(url, workdir)
+                rc2, out2 = download_via_ytdlp(url, workdir, max_height=max_height)
                 if rc2 == 0 and collect_media(workdir):
                     rc, output = rc2, out2
     except subprocess.TimeoutExpired:
@@ -480,7 +485,15 @@ def download():
     else:
         urls = []
 
-    audio_only = str(data.get("format") or "").lower() in ("mp3", "audio")
+    fmt = str(data.get("format") or "").lower()
+    audio_only = fmt in ("mp3", "audio")
+    max_height = None
+    if fmt == "4k":
+        max_height = 2160
+    elif fmt == "1080p":
+        max_height = 1080
+    elif fmt == "720p":
+        max_height = 720
 
     if not urls:
         return jsonify({"error": "URL no válida. Pega un link completo (con https://)."}), 400
@@ -489,21 +502,21 @@ def download():
         return jsonify({"error": "Máximo 20 links por descarga."}), 413
 
     if len(urls) == 1:
-        return _single_download(urls[0], audio_only=audio_only)
-    return _bulk_download(urls, audio_only=audio_only)
+        return _single_download(urls[0], audio_only=audio_only, max_height=max_height)
+    return _bulk_download(urls, audio_only=audio_only, max_height=max_height)
 
 
-def _single_download(url: str, audio_only: bool = False):
+def _single_download(url: str, audio_only: bool = False, max_height: int | None = None):
     if not re.match(r"^https?://", url):
         return jsonify({"error": "URL no válida. Pega un link completo (con https://)."}), 400
 
     for pattern, msg in UNSUPPORTED_PATTERNS:
         if re.search(pattern, url, re.IGNORECASE):
-            return jsonify({"error": f"{msg} Plataformas activas: Instagram, TikTok, X, Reddit, Pinterest."}), 422
+            return jsonify({"error": f"{msg} Plataformas activas: Instagram, TikTok, YouTube, X, Reddit, Pinterest."}), 422
 
     workdir = tempfile.mkdtemp(prefix="muse_")
     try:
-        ok, msg, basename = _process_one(url, workdir, audio_only=audio_only)
+        ok, msg, basename = _process_one(url, workdir, audio_only=audio_only, max_height=max_height)
         if not ok:
             platform, _ = detect_platform(url)
             err, code = map_error_response(msg, platform)
@@ -534,7 +547,7 @@ def _single_download(url: str, audio_only: bool = False):
         shutil.rmtree(workdir, ignore_errors=True)
 
 
-def _bulk_download(urls: list[str], audio_only: bool = False):
+def _bulk_download(urls: list[str], audio_only: bool = False, max_height: int | None = None):
     bulkdir = tempfile.mkdtemp(prefix="muse_bulk_")
     failures = []
     successes = 0
@@ -542,7 +555,7 @@ def _bulk_download(urls: list[str], audio_only: bool = False):
         for idx, url in enumerate(urls, start=1):
             sub = os.path.join(bulkdir, f"item_{idx:02d}")
             os.makedirs(sub, exist_ok=True)
-            ok, msg, basename = _process_one(url, sub, audio_only=audio_only)
+            ok, msg, basename = _process_one(url, sub, audio_only=audio_only, max_height=max_height)
             if not ok:
                 failures.append({"url": url, "error": msg})
                 shutil.rmtree(sub, ignore_errors=True)
