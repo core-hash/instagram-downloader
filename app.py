@@ -41,7 +41,27 @@ def build_loader(target_dir: str) -> instaloader.Instaloader:
         compress_json=False,
         post_metadata_txt_pattern="{caption}",
         quiet=True,
+        user_agent=(
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4) "
+            "AppleScript/605.1.15 (KHTML, like Gecko) "
+            "Version/17.4 Safari/605.1.15"
+        ),
     )
+
+    sessionid = os.environ.get("IG_SESSIONID")
+    if sessionid:
+        cookies = {
+            "sessionid": sessionid,
+            "ds_user_id": os.environ.get("IG_DS_USER_ID", ""),
+            "csrftoken": os.environ.get("IG_CSRFTOKEN", "missing"),
+            "mid": os.environ.get("IG_MID", ""),
+        }
+        loader.context._session.cookies.update({k: v for k, v in cookies.items() if v})
+        ig_username = os.environ.get("IG_USERNAME")
+        if ig_username:
+            loader.context.username = ig_username
+        return loader
+
     session_user = os.environ.get("IG_USERNAME")
     session_pass = os.environ.get("IG_PASSWORD")
     session_file = os.environ.get("IG_SESSION_FILE")
@@ -123,16 +143,25 @@ def download():
         try:
             post = instaloader.Post.from_shortcode(loader.context, shortcode)
         except instaloader.exceptions.LoginRequiredException:
-            return jsonify({"error": "Instagram exige login para esta publicación. Define IG_USERNAME e IG_PASSWORD."}), 401
+            return jsonify({"error": "Instagram exige login para esta publicación. Configura IG_SESSIONID en Render → Environment."}), 401
         except instaloader.exceptions.QueryReturnedNotFoundException:
-            return jsonify({"error": "Publicación no encontrada o privada."}), 404
+            return jsonify({"error": "Publicación no encontrada o eliminada."}), 404
         except Exception as e:
-            return jsonify({"error": f"No se pudo obtener la publicación: {e}"}), 500
+            msg = str(e)
+            low = msg.lower()
+            if "401" in msg or "wait a few minutes" in low or "please wait" in low:
+                return jsonify({
+                    "error": "Instagram bloqueó la IP del servidor. Configura IG_SESSIONID (cookie de tu sesión) o IG_USERNAME+IG_PASSWORD en Render → Environment.",
+                    "hint": "Para sessionid: abre Instagram en tu navegador, copia el cookie 'sessionid' desde DevTools → Application → Cookies."
+                }), 429
+            if "private" in low or "login" in low:
+                return jsonify({"error": "Publicación privada o requiere login. Configura credenciales en Render."}), 401
+            return jsonify({"error": f"No se pudo obtener la publicación: {msg[:300]}"}), 500
 
         try:
             loader.download_post(post, target=shortcode)
         except Exception as e:
-            return jsonify({"error": f"Error descargando: {e}"}), 500
+            return jsonify({"error": f"Error descargando: {str(e)[:300]}"}), 500
 
         post_dir = os.path.join(workdir, shortcode)
         if not os.path.isdir(post_dir) or not os.listdir(post_dir):
