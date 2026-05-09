@@ -3,124 +3,350 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Descargar Instagram → ZIP</title>
+  <title>Muse — Save what inspires you</title>
+  <meta name="description" content="Guarda los posts, reels, carruseles y stories de Instagram que te inspiran. En máxima calidad, organizados, listos para tu archivo.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23a78bfa'/%3E%3Cstop offset='100%25' stop-color='%23fbbf24'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M 15 78 L 15 25 L 50 58 L 85 25 L 85 78' stroke='url(%23g)' stroke-width='10' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M 38 70 L 50 86 L 62 70' stroke='url(%23g)' stroke-width='10' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://muse-co.pages.dev/">
+  <meta property="og:title" content="Muse — Save what inspires you">
+  <meta property="og:description" content="Guarda los posts, reels, carruseles y stories de Instagram que te inspiran. Máxima calidad, organizados, sin almacenar nada.">
+  <meta property="og:image" content="https://muse-co.pages.dev/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Muse — Save what inspires you">
+  <meta name="twitter:description" content="Guarda los posts, reels, carruseles y stories de Instagram que te inspiran.">
+  <meta name="twitter:image" content="https://muse-co.pages.dev/og-image.png">
+
+  <meta name="theme-color" content="#0a0a0f">
   <style>
     :root {
-      --bg: #0b0b10;
-      --panel: #15151d;
+      --bg: #0a0a0f;
+      --panel: #13131a;
+      --panel-2: #1a1a23;
       --border: #2a2a36;
-      --text: #f4f4f5;
-      --muted: #9aa0a6;
-      --accent: #e1306c;
-      --accent2: #f77737;
-      --ok: #22c55e;
-      --err: #ef4444;
+      --text: #f5f5f7;
+      --muted: #8b8b95;
+      --violet: #a78bfa;
+      --amber: #fbbf24;
+      --ok: #34d399;
+      --err: #f87171;
     }
     * { box-sizing: border-box; }
     html, body {
       margin: 0; padding: 0;
-      background: radial-gradient(1200px 600px at 50% -10%, #2a0f24 0%, var(--bg) 60%);
+      background:
+        radial-gradient(900px 500px at 15% -5%, rgba(167, 139, 250, 0.18) 0%, transparent 60%),
+        radial-gradient(800px 500px at 95% 5%, rgba(251, 191, 36, 0.12) 0%, transparent 60%),
+        var(--bg);
       color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
       min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
-    .wrap { max-width: 720px; margin: 0 auto; padding: 64px 20px; }
+    .wrap {
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 48px 20px 20px;
+      flex: 1;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 56px;
+    }
+    .logo {
+      width: 36px; height: 36px;
+      flex-shrink: 0;
+    }
+    .brand {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, var(--violet), var(--amber));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
     h1 {
-      font-size: 32px; margin: 0 0 8px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text; background-clip: text; color: transparent;
+      font-size: clamp(34px, 5vw, 44px);
+      line-height: 1.1;
+      margin: 0 0 16px;
+      letter-spacing: -0.025em;
+      font-weight: 700;
     }
-    p.lead { color: var(--muted); margin: 0 0 28px; }
+    .gradient-text {
+      background: linear-gradient(135deg, var(--violet) 0%, var(--amber) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    p.lead {
+      color: var(--muted);
+      margin: 0 0 36px;
+      font-size: 17px;
+      max-width: 560px;
+      line-height: 1.5;
+    }
     .card {
-      background: var(--panel);
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
       border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+      border-radius: 18px;
+      padding: 26px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
     }
-    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
-    .row { display: flex; gap: 10px; }
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
     input[type="url"], input[type="text"] {
-      flex: 1; background: #0e0e15;
-      border: 1px solid var(--border); color: var(--text);
-      padding: 14px 16px; border-radius: 12px; font-size: 15px;
-      outline: none; transition: border-color .15s;
+      flex: 1;
+      min-width: 220px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.15s, background 0.15s;
+      font-family: inherit;
     }
-    input:focus { border-color: var(--accent); }
+    input[type="url"]:focus, input[type="text"]:focus {
+      border-color: var(--violet);
+      background: rgba(167, 139, 250, 0.05);
+    }
+    input::placeholder { color: #555; }
     button {
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      color: white; border: 0; padding: 14px 22px;
-      border-radius: 12px; font-weight: 600; font-size: 15px;
-      cursor: pointer; transition: transform .05s, opacity .15s;
+      background: linear-gradient(135deg, var(--violet) 0%, var(--amber) 100%);
+      color: #0a0a0f;
+      border: 0;
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: transform 0.05s, box-shadow 0.15s;
+      font-family: inherit;
     }
-    button:hover { opacity: .92; }
+    button:hover {
+      box-shadow: 0 6px 20px rgba(167, 139, 250, 0.35);
+    }
     button:active { transform: translateY(1px); }
-    button:disabled { opacity: .55; cursor: not-allowed; }
-    .status { margin-top: 16px; font-size: 14px; min-height: 20px; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+    .status {
+      margin-top: 14px;
+      font-size: 14px;
+      min-height: 20px;
+      line-height: 1.45;
+    }
     .status.ok { color: var(--ok); }
     .status.err { color: var(--err); }
-    .hint { margin-top: 22px; font-size: 12px; color: var(--muted); line-height: 1.55; }
-    .hint code {
-      background: #0e0e15; padding: 2px 6px;
-      border-radius: 6px; border: 1px solid var(--border);
+    .badges {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin: 20px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .badges span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badges .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--violet);
     }
     .spinner {
-      display: inline-block; width: 14px; height: 14px;
-      border: 2px solid #444; border-top-color: var(--accent);
-      border-radius: 50%; animation: spin .8s linear infinite;
-      vertical-align: -2px; margin-right: 8px;
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(167, 139, 250, 0.3);
+      border-top-color: var(--violet);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: -2px;
+      margin-right: 8px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      margin-top: 36px;
+    }
+    .feat {
+      padding: 18px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+    .feat .icon {
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+    .feat h3 {
+      margin: 0 0 4px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .feat p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
     .settings {
       margin-top: 18px;
       border-top: 1px solid var(--border);
       padding-top: 16px;
     }
     .settings summary {
-      cursor: pointer; color: var(--muted); font-size: 12px;
-      list-style: none; user-select: none;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 12px;
+      list-style: none;
+      user-select: none;
     }
     .settings summary::before { content: "⚙ "; }
     .settings .row { margin-top: 10px; }
     .settings .row input { font-size: 13px; padding: 10px 12px; }
-    .settings .row button { padding: 10px 16px; font-size: 13px; }
+    .settings .row button {
+      padding: 10px 16px;
+      font-size: 13px;
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .settings .row button:hover { box-shadow: none; background: var(--border); }
+    footer {
+      max-width: 720px;
+      width: 100%;
+      margin: 40px auto 0;
+      padding: 24px 20px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .coffee {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: var(--amber);
+      color: #1a1100;
+      border-radius: 999px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 13px;
+      transition: transform 0.05s, box-shadow 0.15s;
+    }
+    .coffee:hover {
+      box-shadow: 0 4px 14px rgba(251, 191, 36, 0.4);
+    }
+    footer a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+    footer a:hover { color: var(--text); }
+    .disclaimer { font-size: 11px; opacity: 0.7; }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>Descargar Instagram → ZIP</h1>
-    <p class="lead">Pega un link de post, carrusel, reel o IGTV. Te devuelvo un ZIP con todo en máxima calidad y los slides numerados.</p>
+    <header>
+      <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="muse-g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#a78bfa"/>
+            <stop offset="100%" stop-color="#fbbf24"/>
+          </linearGradient>
+        </defs>
+        <path d="M 15 78 L 15 25 L 50 58 L 85 25 L 85 78" stroke="url(#muse-g)" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M 38 70 L 50 86 L 62 70" stroke="url(#muse-g)" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="brand">muse</span>
+    </header>
+
+    <h1>Save <span class="gradient-text">what inspires you.</span></h1>
+    <p class="lead">Pega cualquier post, reel, carrusel o story de Instagram. Te lo guardo en máxima calidad, organizado, con nombre limpio y todo el contexto incluido.</p>
 
     <div class="card">
       <form id="form">
-        <label for="url">URL de Instagram</label>
+        <label for="url">Pega tu link</label>
         <div class="row">
           <input id="url" name="url" type="url" required
-                 placeholder="https://www.instagram.com/p/CxXxXxXxXxX/">
-          <button id="btn" type="submit">Descargar ZIP</button>
+                 placeholder="https://www.instagram.com/p/...">
+          <button id="btn" type="submit">Guardar</button>
         </div>
         <div id="status" class="status"></div>
+        <div class="badges">
+          <span><span class="dot"></span>Posts</span>
+          <span><span class="dot"></span>Reels</span>
+          <span><span class="dot"></span>Carruseles</span>
+          <span><span class="dot"></span>Stories</span>
+          <span><span class="dot"></span>Máxima calidad</span>
+        </div>
       </form>
 
       <details class="settings">
-        <summary>Backend</summary>
-        <label for="backend" style="margin-top:10px;">URL del backend (Flask)</label>
+        <summary>Configuración avanzada</summary>
+        <label for="backend" style="margin-top: 10px;">URL del backend</label>
         <div class="row">
-          <input id="backend" type="text" placeholder="https://instagram-downloader.onrender.com">
+          <input id="backend" type="text" placeholder="https://...onrender.com">
           <button id="saveBackend" type="button">Guardar</button>
-        </div>
-        <div class="hint" style="margin-top:8px;">
-          Vacío = usa <code>/api/download</code> en el mismo dominio (modo dev local).
         </div>
       </details>
     </div>
+
+    <div class="features">
+      <div class="feat">
+        <div class="icon">📦</div>
+        <h3>1 archivo o ZIP</h3>
+        <p>Una imagen sola → directa. Carrusel → ZIP organizado y numerado.</p>
+      </div>
+      <div class="feat">
+        <div class="icon">🎯</div>
+        <h3>Nombres inteligentes</h3>
+        <p>Cada descarga lleva el autor, fecha y contexto del post.</p>
+      </div>
+      <div class="feat">
+        <div class="icon">🔒</div>
+        <h3>Cero almacenamiento</h3>
+        <p>No guardamos nada. Lo descargas y se borra del servidor.</p>
+      </div>
+    </div>
   </div>
 
+  <footer>
+    <div>
+      <span>© Muse</span> · <a href="#" onclick="alert('No guardamos absolutamente nada de lo que descargas. Tu cookie de IG vive en variables de entorno cifradas.'); return false;">Privacidad</a> · <span class="disclaimer">Para uso personal. Respeta a los creadores.</span>
+    </div>
+    <a class="coffee" href="https://buymeacoffee.com/REEMPLAZAME" target="_blank" rel="noopener">☕ Buy me a coffee</a>
+  </footer>
+
+  <!-- Cloudflare Web Analytics: pega tu token después de crear el sitio en
+       https://dash.cloudflare.com/?to=/:account/web-analytics -->
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+          data-cf-beacon='{"token": "REEMPLAZA_CON_TU_TOKEN"}'></script>
+
   <script>
-    // === CONFIGURACIÓN ===
-    // Para producción: pon aquí la URL del backend desplegado en Render/Fly/Railway.
-    // Ejemplo: "https://instagram-downloader.onrender.com"
-    const DEFAULT_BACKEND_URL = "";
+    const DEFAULT_BACKEND_URL = "https://instagram-downloader-3umo.onrender.com";
 
     function getBackendUrl() {
       const stored = localStorage.getItem("backend_url");
@@ -134,7 +360,7 @@
     const backendInput = document.getElementById('backend');
     const saveBackend = document.getElementById('saveBackend');
 
-    backendInput.value = getBackendUrl();
+    backendInput.value = localStorage.getItem("backend_url") || "";
 
     saveBackend.addEventListener('click', () => {
       const v = backendInput.value.trim().replace(/\/$/, "");
@@ -152,7 +378,7 @@
 
       btn.disabled = true;
       status.className = 'status';
-      status.innerHTML = '<span class="spinner"></span>Descargando contenido en máxima calidad…';
+      status.innerHTML = '<span class="spinner"></span>Guardando en máxima calidad…';
 
       const base = getBackendUrl();
       const endpoint = base ? `${base}/api/download` : '/api/download';
@@ -174,9 +400,9 @@
 
         const blob = await res.blob();
         const cd = res.headers.get('Content-Disposition') || '';
-        let filename = 'instagram.zip';
-        const m = cd.match(/filename="?([^"]+)"?/);
-        if (m) filename = m[1];
+        let filename = 'muse-download';
+        const m = cd.match(/filename="?([^";]+)"?/);
+        if (m) filename = m[1].trim();
 
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -187,10 +413,10 @@
         URL.revokeObjectURL(a.href);
 
         status.className = 'status ok';
-        status.textContent = `Listo: ${filename}`;
+        status.textContent = `✓ ${filename}`;
       } catch (err) {
         status.className = 'status err';
-        status.textContent = `Error de red: ${err.message}. ¿Backend mal configurado?`;
+        status.textContent = `Error de red: ${err.message}`;
       } finally {
         btn.disabled = false;
       }

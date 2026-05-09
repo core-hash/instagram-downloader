@@ -17,7 +17,7 @@ app = Flask(__name__)
 
 ALLOWED_ORIGINS = os.environ.get(
     "ALLOWED_ORIGINS",
-    "http://localhost:5005,http://127.0.0.1:5005,https://instagram-downloader-687.pages.dev",
+    "http://localhost:5005,http://127.0.0.1:5005,https://muse-co.pages.dev,https://instagram-downloader-687.pages.dev",
 ).split(",")
 CORS(
     app,
