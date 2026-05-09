@@ -3,32 +3,35 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Muse — Save what inspires you</title>
+  <title>Muse — Guarda lo que te inspira</title>
   <meta name="description" content="Guarda los posts, reels, carruseles y stories de Instagram que te inspiran. En máxima calidad, organizados, listos para tu archivo.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23a78bfa'/%3E%3Cstop offset='100%25' stop-color='%23fbbf24'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M 15 78 L 15 25 L 50 58 L 85 25 L 85 78' stroke='url(%23g)' stroke-width='10' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M 38 70 L 50 86 L 62 70' stroke='url(%23g)' stroke-width='10' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://muse-co.pages.dev/">
-  <meta property="og:title" content="Muse — Save what inspires you">
+  <meta property="og:title" content="Muse — Guarda lo que te inspira">
   <meta property="og:description" content="Guarda los posts, reels, carruseles y stories de Instagram que te inspiran. Máxima calidad, organizados, sin almacenar nada.">
   <meta property="og:image" content="https://muse-co.pages.dev/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Muse — Save what inspires you">
+  <meta name="twitter:title" content="Muse — Guarda lo que te inspira">
   <meta name="twitter:description" content="Guarda los posts, reels, carruseles y stories de Instagram que te inspiran.">
   <meta name="twitter:image" content="https://muse-co.pages.dev/og-image.png">
 
   <meta name="theme-color" content="#0a0a0f">
+
   <style>
     :root {
       --bg: #0a0a0f;
       --panel: #13131a;
       --panel-2: #1a1a23;
       --border: #2a2a36;
+      --border-soft: #20202b;
       --text: #f5f5f7;
       --muted: #8b8b95;
+      --muted-2: #6b6b75;
       --violet: #a78bfa;
       --amber: #fbbf24;
       --ok: #34d399;
@@ -48,7 +51,7 @@
       flex-direction: column;
     }
     .wrap {
-      max-width: 720px;
+      max-width: 760px;
       width: 100%;
       margin: 0 auto;
       padding: 48px 20px 20px;
@@ -74,8 +77,8 @@
       color: transparent;
     }
     h1 {
-      font-size: clamp(34px, 5vw, 44px);
-      line-height: 1.1;
+      font-size: clamp(34px, 5vw, 46px);
+      line-height: 1.08;
       margin: 0 0 16px;
       letter-spacing: -0.025em;
       font-weight: 700;
@@ -110,7 +113,7 @@
       font-weight: 600;
     }
     .row { display: flex; gap: 10px; flex-wrap: wrap; }
-    input[type="url"], input[type="text"] {
+    input[type="url"] {
       flex: 1;
       min-width: 220px;
       background: rgba(0, 0, 0, 0.3);
@@ -123,7 +126,7 @@
       transition: border-color 0.15s, background 0.15s;
       font-family: inherit;
     }
-    input[type="url"]:focus, input[type="text"]:focus {
+    input[type="url"]:focus {
       border-color: var(--violet);
       background: rgba(167, 139, 250, 0.05);
     }
@@ -132,7 +135,7 @@
       background: linear-gradient(135deg, var(--violet) 0%, var(--amber) 100%);
       color: #0a0a0f;
       border: 0;
-      padding: 14px 22px;
+      padding: 14px 24px;
       border-radius: 12px;
       font-weight: 700;
       font-size: 15px;
@@ -140,9 +143,7 @@
       transition: transform 0.05s, box-shadow 0.15s;
       font-family: inherit;
     }
-    button:hover {
-      box-shadow: 0 6px 20px rgba(167, 139, 250, 0.35);
-    }
+    button:hover { box-shadow: 0 6px 20px rgba(167, 139, 250, 0.35); }
     button:active { transform: translateY(1px); }
     button:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
     .status {
@@ -153,24 +154,6 @@
     }
     .status.ok { color: var(--ok); }
     .status.err { color: var(--err); }
-    .badges {
-      display: flex;
-      gap: 14px;
-      flex-wrap: wrap;
-      margin: 20px 0 0;
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .badges span {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .badges .dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--violet);
-    }
     .spinner {
       display: inline-block;
       width: 14px; height: 14px;
@@ -182,61 +165,103 @@
       margin-right: 8px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Section: soporta */
+    .section {
+      margin-top: 56px;
+    }
+    .section-eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted-2);
+      font-weight: 600;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-eyebrow::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+    }
+    .supports {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1px;
+      background: var(--border-soft);
+      border: 1px solid var(--border-soft);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .support-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 22px 14px;
+      background: var(--panel);
+      transition: background 0.2s;
+    }
+    .support-item:hover { background: var(--panel-2); }
+    .support-item .ico {
+      width: 24px; height: 24px;
+      color: var(--violet);
+      flex-shrink: 0;
+    }
+    .support-item .label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    /* Section: features */
     .features {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 14px;
-      margin-top: 36px;
     }
     .feat {
-      padding: 18px;
-      background: rgba(255, 255, 255, 0.02);
+      padding: 22px;
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
     }
-    .feat .icon {
-      font-size: 22px;
-      margin-bottom: 8px;
+    .feat::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--violet), transparent);
+      opacity: 0.4;
+    }
+    .feat .ico {
+      width: 28px; height: 28px;
+      color: var(--amber);
+      margin-bottom: 14px;
     }
     .feat h3 {
-      margin: 0 0 4px;
-      font-size: 14px;
+      margin: 0 0 6px;
+      font-size: 15px;
       font-weight: 600;
+      color: var(--text);
     }
     .feat p {
       margin: 0;
       font-size: 13px;
       color: var(--muted);
-      line-height: 1.4;
+      line-height: 1.5;
     }
-    .settings {
-      margin-top: 18px;
-      border-top: 1px solid var(--border);
-      padding-top: 16px;
-    }
-    .settings summary {
-      cursor: pointer;
-      color: var(--muted);
-      font-size: 12px;
-      list-style: none;
-      user-select: none;
-    }
-    .settings summary::before { content: "⚙ "; }
-    .settings .row { margin-top: 10px; }
-    .settings .row input { font-size: 13px; padding: 10px 12px; }
-    .settings .row button {
-      padding: 10px 16px;
-      font-size: 13px;
-      background: var(--panel-2);
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-    .settings .row button:hover { box-shadow: none; background: var(--border); }
+
     footer {
-      max-width: 720px;
+      max-width: 760px;
       width: 100%;
-      margin: 40px auto 0;
-      padding: 24px 20px;
+      margin: 56px auto 0;
+      padding: 24px 20px 40px;
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
@@ -246,181 +271,280 @@
       font-size: 12px;
       color: var(--muted);
     }
-    .coffee {
+    .foot-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .foot-right {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    footer a {
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.15s;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 8px 14px;
+    }
+    footer a:hover { color: var(--text); }
+    footer a.credit:hover { color: var(--violet); }
+    footer .ico-sm { width: 14px; height: 14px; }
+    .coffee {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
       background: var(--amber);
-      color: #1a1100;
+      color: #1a1100 !important;
       border-radius: 999px;
       text-decoration: none;
-      font-weight: 600;
+      font-weight: 700;
       font-size: 13px;
       transition: transform 0.05s, box-shadow 0.15s;
     }
     .coffee:hover {
       box-shadow: 0 4px 14px rgba(251, 191, 36, 0.4);
+      color: #1a1100 !important;
     }
-    footer a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
-    footer a:hover { color: var(--text); }
-    .disclaimer { font-size: 11px; opacity: 0.7; }
+    .coffee .ico { width: 16px; height: 16px; color: #1a1100; }
+    .disclaimer {
+      font-size: 11px;
+      opacity: 0.7;
+    }
+    .dot { color: var(--muted-2); }
+
+    @media (max-width: 520px) {
+      .supports { grid-template-columns: repeat(2, 1fr); }
+      footer { justify-content: center; text-align: center; }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="muse-g" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#a78bfa"/>
-            <stop offset="100%" stop-color="#fbbf24"/>
-          </linearGradient>
-        </defs>
-        <path d="M 15 78 L 15 25 L 50 58 L 85 25 L 85 78" stroke="url(#muse-g)" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M 38 70 L 50 86 L 62 70" stroke="url(#muse-g)" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <span class="brand">muse</span>
-    </header>
 
-    <h1>Save <span class="gradient-text">what inspires you.</span></h1>
-    <p class="lead">Pega cualquier post, reel, carrusel o story de Instagram. Te lo guardo en máxima calidad, organizado, con nombre limpio y todo el contexto incluido.</p>
+<!-- ============================================
+     ICON LIBRARY (referenced by <use>)
+     ============================================ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-photo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="3"/>
+      <circle cx="9" cy="9" r="1.6"/>
+      <path d="M21 15l-5-5L5 21"/>
+    </symbol>
+    <symbol id="i-video" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="5" width="18" height="14" rx="3"/>
+      <path d="M10.5 9.5L15 12l-4.5 2.5z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-stack" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="7" y="7" width="13" height="13" rx="2.5"/>
+      <path d="M16 4H6a2 2 0 0 0-2 2v10"/>
+    </symbol>
+    <symbol id="i-circle-ring" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+      <circle cx="12" cy="12" r="9" stroke-dasharray="2.5 2.2"/>
+      <circle cx="12" cy="12" r="4.5" stroke-width="1.6"/>
+    </symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 3l1.6 6.4L20 11l-6.4 1.6L12 19l-1.6-6.4L4 11l6.4-1.6z"/>
+    </symbol>
+    <symbol id="i-archive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 8h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8Z"/>
+      <path d="M3 8l2-4h14l2 4"/>
+      <path d="M10 13h4"/>
+    </symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.5 11.5L13 4H4v9l7.5 7.5a2 2 0 0 0 2.8 0l6.2-6.2a2 2 0 0 0 0-2.8Z"/>
+      <circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2.5l8 3.5v6c0 5-3.5 9.2-8 10-4.5-.8-8-5-8-10V6l8-3.5Z"/>
+      <path d="M9 12l2.2 2.2L15 10.5"/>
+    </symbol>
+    <symbol id="i-coffee" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 9h13v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V9Z"/>
+      <path d="M17 12h2a3 3 0 0 1 0 6h-2"/>
+      <path d="M7 3c.5 1 1.2 1.4 1.2 2.4S7.5 6.4 7 7"/>
+      <path d="M11 3c.5 1 1.2 1.4 1.2 2.4S11.5 6.4 11 7"/>
+    </symbol>
+    <symbol id="i-instagram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="5"/>
+      <circle cx="12" cy="12" r="4"/>
+      <circle cx="17.5" cy="6.5" r="1" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="4" y="11" width="16" height="10" rx="2"/>
+      <path d="M8 11V8a4 4 0 0 1 8 0v3"/>
+    </symbol>
+  </defs>
+</svg>
 
-    <div class="card">
-      <form id="form">
-        <label for="url">Pega tu link</label>
-        <div class="row">
-          <input id="url" name="url" type="url" required
-                 placeholder="https://www.instagram.com/p/...">
-          <button id="btn" type="submit">Guardar</button>
-        </div>
-        <div id="status" class="status"></div>
-        <div class="badges">
-          <span><span class="dot"></span>Posts</span>
-          <span><span class="dot"></span>Reels</span>
-          <span><span class="dot"></span>Carruseles</span>
-          <span><span class="dot"></span>Stories</span>
-          <span><span class="dot"></span>Máxima calidad</span>
-        </div>
-      </form>
+<div class="wrap">
+  <header>
+    <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="muse-g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#a78bfa"/>
+          <stop offset="100%" stop-color="#fbbf24"/>
+        </linearGradient>
+      </defs>
+      <path d="M 15 78 L 15 25 L 50 58 L 85 25 L 85 78" stroke="url(#muse-g)" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M 38 70 L 50 86 L 62 70" stroke="url(#muse-g)" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="brand">muse</span>
+  </header>
 
-      <details class="settings">
-        <summary>Configuración avanzada</summary>
-        <label for="backend" style="margin-top: 10px;">URL del backend</label>
-        <div class="row">
-          <input id="backend" type="text" placeholder="https://...onrender.com">
-          <button id="saveBackend" type="button">Guardar</button>
-        </div>
-      </details>
-    </div>
+  <h1>Guarda <span class="gradient-text">lo que te inspira.</span></h1>
+  <p class="lead">Pega cualquier link de Instagram. Te lo guardo en máxima calidad, con nombre limpio y todo el contexto del post.</p>
 
-    <div class="features">
-      <div class="feat">
-        <div class="icon">📦</div>
-        <h3>1 archivo o ZIP</h3>
-        <p>Una imagen sola → directa. Carrusel → ZIP organizado y numerado.</p>
+  <div class="card">
+    <form id="form">
+      <label for="url">Pega tu link</label>
+      <div class="row">
+        <input id="url" name="url" type="url" required
+               placeholder="https://www.instagram.com/p/...">
+        <button id="btn" type="submit">Guardar</button>
       </div>
-      <div class="feat">
-        <div class="icon">🎯</div>
-        <h3>Nombres inteligentes</h3>
-        <p>Cada descarga lleva el autor, fecha y contexto del post.</p>
+      <div id="status" class="status"></div>
+    </form>
+  </div>
+
+  <div class="section">
+    <div class="section-eyebrow">Soporta</div>
+    <div class="supports">
+      <div class="support-item">
+        <svg class="ico"><use href="#i-photo"/></svg>
+        <span class="label">Posts</span>
       </div>
-      <div class="feat">
-        <div class="icon">🔒</div>
-        <h3>Cero almacenamiento</h3>
-        <p>No guardamos nada. Lo descargas y se borra del servidor.</p>
+      <div class="support-item">
+        <svg class="ico"><use href="#i-video"/></svg>
+        <span class="label">Reels</span>
+      </div>
+      <div class="support-item">
+        <svg class="ico"><use href="#i-stack"/></svg>
+        <span class="label">Carruseles</span>
+      </div>
+      <div class="support-item">
+        <svg class="ico"><use href="#i-circle-ring"/></svg>
+        <span class="label">Stories</span>
+      </div>
+      <div class="support-item">
+        <svg class="ico"><use href="#i-sparkle"/></svg>
+        <span class="label">Máxima calidad</span>
       </div>
     </div>
   </div>
 
-  <footer>
-    <div>
-      <span>© Muse</span> · <a href="#" onclick="alert('No guardamos absolutamente nada de lo que descargas. Tu cookie de IG vive en variables de entorno cifradas.'); return false;">Privacidad</a> · <span class="disclaimer">Para uso personal. Respeta a los creadores.</span>
+  <div class="section">
+    <div class="section-eyebrow">Cómo funciona</div>
+    <div class="features">
+      <div class="feat">
+        <svg class="ico"><use href="#i-archive"/></svg>
+        <h3>Un archivo o un ZIP</h3>
+        <p>Una imagen sola se descarga directa. Carrusel se entrega como ZIP organizado y numerado.</p>
+      </div>
+      <div class="feat">
+        <svg class="ico"><use href="#i-tag"/></svg>
+        <h3>Nombres inteligentes</h3>
+        <p>Cada descarga lleva el autor, la fecha y las primeras palabras del caption.</p>
+      </div>
+      <div class="feat">
+        <svg class="ico"><use href="#i-shield"/></svg>
+        <h3>Cero almacenamiento</h3>
+        <p>No guardamos nada. Lo descargas y se borra del servidor al instante.</p>
+      </div>
     </div>
-    <a class="coffee" href="https://buymeacoffee.com/REEMPLAZAME" target="_blank" rel="noopener">☕ Buy me a coffee</a>
-  </footer>
+  </div>
+</div>
 
-  <!-- Cloudflare Web Analytics: pega tu token después de crear el sitio en
-       https://dash.cloudflare.com/?to=/:account/web-analytics -->
-  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
-          data-cf-beacon='{"token": "REEMPLAZA_CON_TU_TOKEN"}'></script>
+<footer>
+  <div class="foot-left">
+    <span>© Muse</span>
+    <span class="dot">·</span>
+    <a href="#" id="privacy"><svg class="ico-sm"><use href="#i-lock"/></svg>Privacidad</a>
+    <span class="dot">·</span>
+    <span class="disclaimer">Para uso personal. Respeta a los creadores.</span>
+  </div>
+  <div class="foot-right">
+    <a class="credit" href="https://www.instagram.com/dariomz" target="_blank" rel="noopener">
+      <svg class="ico-sm"><use href="#i-instagram"/></svg>
+      Diseño por @dariomz
+    </a>
+    <a class="coffee" href="https://buymeacoffee.com/REEMPLAZAME" target="_blank" rel="noopener">
+      <svg class="ico"><use href="#i-coffee"/></svg>
+      Invítame un café
+    </a>
+  </div>
+</footer>
 
-  <script>
-    const DEFAULT_BACKEND_URL = "https://instagram-downloader-3umo.onrender.com";
+<!-- Cloudflare Web Analytics -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+        data-cf-beacon='{"token": "REEMPLAZA_CON_TU_TOKEN"}'></script>
 
-    function getBackendUrl() {
-      const stored = localStorage.getItem("backend_url");
-      return (stored || DEFAULT_BACKEND_URL || "").replace(/\/$/, "");
-    }
+<script>
+  const BACKEND_URL = "https://instagram-downloader-3umo.onrender.com";
 
-    const form = document.getElementById('form');
-    const btn = document.getElementById('btn');
-    const status = document.getElementById('status');
-    const urlInput = document.getElementById('url');
-    const backendInput = document.getElementById('backend');
-    const saveBackend = document.getElementById('saveBackend');
+  const form = document.getElementById('form');
+  const btn = document.getElementById('btn');
+  const status = document.getElementById('status');
+  const urlInput = document.getElementById('url');
+  const privacy = document.getElementById('privacy');
 
-    backendInput.value = localStorage.getItem("backend_url") || "";
+  privacy.addEventListener('click', (e) => {
+    e.preventDefault();
+    alert('No guardamos nada de lo que descargas. Tu archivo se borra del servidor al instante.');
+  });
 
-    saveBackend.addEventListener('click', () => {
-      const v = backendInput.value.trim().replace(/\/$/, "");
-      if (v) localStorage.setItem("backend_url", v);
-      else localStorage.removeItem("backend_url");
-      status.className = 'status ok';
-      status.textContent = 'Backend guardado.';
-      setTimeout(() => { status.textContent = ''; status.className = 'status'; }, 1500);
-    });
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const url = urlInput.value.trim();
+    if (!url) return;
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const url = urlInput.value.trim();
-      if (!url) return;
+    btn.disabled = true;
+    status.className = 'status';
+    status.innerHTML = '<span class="spinner"></span>Guardando en máxima calidad…';
 
-      btn.disabled = true;
-      status.className = 'status';
-      status.innerHTML = '<span class="spinner"></span>Guardando en máxima calidad…';
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/download`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url })
+      });
 
-      const base = getBackendUrl();
-      const endpoint = base ? `${base}/api/download` : '/api/download';
-
-      try {
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url })
-        });
-
-        if (!res.ok) {
-          let msg = `Error ${res.status}`;
-          try { const j = await res.json(); if (j.error) msg = j.error; } catch {}
-          status.className = 'status err';
-          status.textContent = msg;
-          return;
-        }
-
-        const blob = await res.blob();
-        const cd = res.headers.get('Content-Disposition') || '';
-        let filename = 'muse-download';
-        const m = cd.match(/filename="?([^";]+)"?/);
-        if (m) filename = m[1].trim();
-
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(a.href);
-
-        status.className = 'status ok';
-        status.textContent = `✓ ${filename}`;
-      } catch (err) {
+      if (!res.ok) {
+        let msg = `Error ${res.status}`;
+        try { const j = await res.json(); if (j.error) msg = j.error; } catch {}
         status.className = 'status err';
-        status.textContent = `Error de red: ${err.message}`;
-      } finally {
-        btn.disabled = false;
+        status.textContent = msg;
+        return;
       }
-    });
-  </script>
+
+      const blob = await res.blob();
+      const cd = res.headers.get('Content-Disposition') || '';
+      let filename = 'muse-descarga';
+      const m = cd.match(/filename="?([^";]+)"?/);
+      if (m) filename = m[1].trim();
+
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+
+      status.className = 'status ok';
+      status.textContent = `✓ ${filename}`;
+    } catch (err) {
+      status.className = 'status err';
+      status.textContent = `Error de red: ${err.message}`;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
 </body>
 </html>

@@ -103,7 +103,7 @@ def main():
 
     draw.text(
         (80, 280 + 145),
-        "Save what inspires you.",
+        "Guarda lo que te inspira.",
         font=sub_font,
         fill=VIOLET,
     )
