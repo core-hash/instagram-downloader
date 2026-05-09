@@ -491,7 +491,7 @@ def _single_download(url: str, audio_only: bool = False, max_height: int | None 
 
     for pattern, msg in UNSUPPORTED_PATTERNS:
         if re.search(pattern, url, re.IGNORECASE):
-            return jsonify({"error": f"{msg} Plataformas activas: Instagram, TikTok, YouTube, X, Reddit, Pinterest."}), 422
+            return jsonify({"error": f"{msg} Plataformas activas: Instagram, TikTok, X, Reddit, Pinterest."}), 422
 
     workdir = tempfile.mkdtemp(prefix="muse_")
     try:
