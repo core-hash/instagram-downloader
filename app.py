@@ -19,7 +19,11 @@ ALLOWED_ORIGINS = os.environ.get(
     "ALLOWED_ORIGINS",
     "http://localhost:5005,http://127.0.0.1:5005,https://instagram-downloader-687.pages.dev",
 ).split(",")
-CORS(app, resources={r"/api/*": {"origins": ALLOWED_ORIGINS}})
+CORS(
+    app,
+    resources={r"/api/*": {"origins": ALLOWED_ORIGINS}},
+    expose_headers=["Content-Disposition"],
+)
 
 MEDIA_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov", ".heic", ".m4a"}
 NETSCAPE_HEADER = "# Netscape HTTP Cookie File\n# Auto-generated.\n\n"
