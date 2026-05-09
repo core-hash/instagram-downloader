@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Muse — Guarda lo que te inspira</title>
-  <meta name="description" content="Descarga posts, reels, carruseles, stories y videos de Instagram, TikTok, YouTube, X, Reddit y más. En máxima calidad, sin marca de agua.">
+  <meta name="description" content="Descarga posts, reels, carruseles, stories y videos de Instagram, TikTok, X, Reddit y Pinterest. Máxima calidad, sin marca de agua, gratis.">
 
   <!-- PWA -->
   <link rel="manifest" href="/manifest.webmanifest">
@@ -15,12 +15,13 @@
   <meta name="theme-color" content="#0a0a0f">
   <meta name="mobile-web-app-capable" content="yes">
 
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%23a78bfa'/%3E%3Cstop offset='100%25' stop-color='%23fbbf24'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M 15 78 L 15 25 L 50 58 L 85 25 L 85 78' stroke='url(%23g)' stroke-width='10' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M 38 70 L 50 86 L 62 70' stroke='url(%23g)' stroke-width='10' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <!-- Favicon: 4-point sparkle gradient -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23c4b5fd'/%3E%3Cstop offset='50%25' stop-color='%23f472b6'/%3E%3Cstop offset='100%25' stop-color='%23fbbf24'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M50 4 Q54.14 45.86 96 50 Q54.14 54.14 50 96 Q45.86 54.14 4 50 Q45.86 45.86 50 4 Z' fill='url(%23g)'/%3E%3C/svg%3E">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://muse-co.pages.dev/">
   <meta property="og:title" content="Muse — Guarda lo que te inspira">
-  <meta property="og:description" content="Descarga de Instagram, TikTok, YouTube, X y más. Máxima calidad, sin marca de agua, gratis.">
+  <meta property="og:description" content="Descarga de Instagram, TikTok, X, Reddit y Pinterest. Máxima calidad, sin marca de agua, gratis.">
   <meta property="og:image" content="https://muse-co.pages.dev/og-image.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -39,12 +40,14 @@
       --muted: #8b8b95;
       --muted-2: #5c5c66;
       --violet: #a78bfa;
-      --violet-2: #8b5cf6;
+      --violet-light: #c4b5fd;
+      --pink: #f472b6;
       --amber: #fbbf24;
       --amber-2: #f59e0b;
-      --pink: #f472b6;
       --ok: #34d399;
       --err: #f87171;
+      --grad: linear-gradient(180deg, var(--violet-light) 0%, var(--pink) 50%, var(--amber) 100%);
+      --grad-h: linear-gradient(135deg, var(--violet-light) 0%, var(--pink) 50%, var(--amber) 100%);
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
@@ -59,37 +62,82 @@
     }
 
     /* === Animated mesh background === */
-    .bg-mesh {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      overflow: hidden;
-      pointer-events: none;
-    }
-    .blob {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.5;
-      animation: drift 22s ease-in-out infinite alternate;
-    }
+    .bg-mesh { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+    .blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.45; animation: drift 22s ease-in-out infinite alternate; }
     .blob-1 { width: 580px; height: 580px; background: var(--violet); top: -180px; left: -120px; }
-    .blob-2 { width: 520px; height: 520px; background: var(--amber); top: 20vh; right: -160px; animation-duration: 28s; }
-    .blob-3 { width: 460px; height: 460px; background: var(--pink); top: 60vh; left: 30vw; opacity: 0.25; animation-duration: 35s; }
+    .blob-2 { width: 520px; height: 520px; background: var(--amber); top: 25vh; right: -180px; animation-duration: 28s; }
+    .blob-3 { width: 460px; height: 460px; background: var(--pink); top: 65vh; left: 25vw; opacity: 0.3; animation-duration: 35s; }
     @keyframes drift {
       0%   { transform: translate(0, 0) scale(1); }
       50%  { transform: translate(40px, -30px) scale(1.08); }
       100% { transform: translate(-30px, 40px) scale(0.95); }
     }
     body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      background:
-        radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.4) 0%, transparent 70%),
-        linear-gradient(180deg, transparent 0%, var(--bg) 100%);
+      content: ""; position: fixed; inset: 0; z-index: -1;
+      background: radial-gradient(ellipse at 50% 0%, rgba(0,0,0,0.4) 0%, transparent 70%),
+                  linear-gradient(180deg, transparent 0%, var(--bg) 100%);
       pointer-events: none;
+    }
+
+    /* === Top install banner === */
+    .install-bar {
+      display: none;
+      position: sticky;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: linear-gradient(135deg, rgba(167,139,250,0.18), rgba(244,114,182,0.14), rgba(251,191,36,0.18));
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(167,139,250,0.25);
+      padding: 10px 16px;
+      animation: slide-down 0.4s ease-out;
+    }
+    .install-bar.show { display: flex; align-items: center; justify-content: center; gap: 12px; }
+    @keyframes slide-down {
+      from { transform: translateY(-100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .install-bar .ib-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .install-bar .ib-text {
+      flex: 0 1 auto;
+      min-width: 0;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    .install-bar .ib-text .ib-sub {
+      display: block;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .install-bar .ib-btn {
+      background: var(--text);
+      color: #0a0a0f;
+      border: 0;
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+      flex-shrink: 0;
+    }
+    .install-bar .ib-close {
+      background: transparent;
+      border: 0;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 22px;
+      padding: 4px 8px;
+      line-height: 1;
+      flex-shrink: 0;
     }
 
     /* === Layout === */
@@ -97,10 +145,10 @@
       max-width: 920px;
       width: 100%;
       margin: 0 auto;
-      padding: 32px 20px 20px;
+      padding: 24px 20px 20px;
     }
     @media (min-width: 768px) {
-      .wrap { padding-top: 56px; }
+      .wrap { padding: 56px 20px 20px; }
     }
 
     /* === Header === */
@@ -109,37 +157,30 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 64px;
+      margin-bottom: 48px;
     }
-    .brand-link { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+    .brand-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
     .logo {
-      width: 38px; height: 38px;
+      width: 36px; height: 36px;
       flex-shrink: 0;
-      transition: transform 0.3s, filter 0.3s;
-      filter: drop-shadow(0 0 12px rgba(167, 139, 250, 0.3));
+      transition: transform 0.4s cubic-bezier(.34,1.56,.64,1);
+      filter: drop-shadow(0 0 14px rgba(244, 114, 182, 0.35));
     }
-    .brand-link:hover .logo { transform: rotate(-8deg) scale(1.05); filter: drop-shadow(0 0 18px rgba(251, 191, 36, 0.5)); }
+    .brand-link:hover .logo { transform: rotate(45deg) scale(1.1); }
     .brand {
       font-size: 22px;
       font-weight: 700;
       letter-spacing: -0.02em;
-      background: linear-gradient(135deg, var(--violet), var(--amber));
+      background: var(--grad-h);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
     }
-    .topnav {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .topnav { display: flex; align-items: center; gap: 8px; }
     .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      display: inline-flex; align-items: center; gap: 6px;
       padding: 8px 14px;
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 12px; font-weight: 600;
       color: var(--muted);
       background: rgba(255,255,255,0.03);
       border: 1px solid var(--border);
@@ -155,45 +196,45 @@
       box-shadow: 0 0 8px var(--ok);
       animation: pulse 2s ease-in-out infinite;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
     /* === Hero === */
+    .hero { text-align: center; }
+    @media (min-width: 768px) { .hero { text-align: left; } }
+
     h1 {
-      font-size: clamp(40px, 6.5vw, 72px);
+      font-size: clamp(36px, 8vw, 72px);
       line-height: 1.02;
       letter-spacing: -0.035em;
-      margin: 0 0 20px;
+      margin: 0 0 18px;
       font-weight: 800;
     }
     .gradient-text {
-      background: linear-gradient(135deg, var(--violet) 0%, var(--pink) 50%, var(--amber) 100%);
+      background: var(--grad-h);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
     }
     p.lead {
       color: var(--muted);
-      margin: 0 0 28px;
-      font-size: clamp(16px, 2vw, 19px);
-      max-width: 620px;
+      margin: 0 auto 28px;
+      font-size: clamp(15px, 2.2vw, 19px);
+      max-width: 580px;
       line-height: 1.55;
     }
+    @media (min-width: 768px) { p.lead { margin-left: 0; max-width: 620px; } }
+
     .stats {
       display: flex;
-      gap: 14px;
+      gap: 12px;
       flex-wrap: wrap;
-      margin-bottom: 36px;
+      justify-content: center;
+      margin-bottom: 32px;
       font-size: 13px;
       color: var(--muted);
     }
-    .stat {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
+    @media (min-width: 768px) { .stats { justify-content: flex-start; } }
+    .stat { display: inline-flex; align-items: center; gap: 6px; }
     .stat strong { color: var(--text); font-weight: 600; }
     .stat-sep { color: var(--muted-2); }
 
@@ -205,9 +246,10 @@
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 28px;
+      padding: 24px 22px;
       box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
     }
+    @media (min-width: 768px) { .card { padding: 28px; } }
     .card::before {
       content: "";
       position: absolute;
@@ -229,20 +271,24 @@
       text-transform: uppercase;
       letter-spacing: 0.12em;
       font-weight: 700;
+      text-align: left;
     }
     .row { display: flex; gap: 10px; flex-wrap: wrap; }
     input[type="url"] {
       flex: 1;
-      min-width: 240px;
+      min-width: 100%;
       background: rgba(0, 0, 0, 0.4);
       border: 1px solid var(--border);
       color: var(--text);
       padding: 16px 18px;
       border-radius: 14px;
-      font-size: 15px;
+      font-size: 16px;
       outline: none;
       transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
       font-family: inherit;
+    }
+    @media (min-width: 520px) {
+      input[type="url"] { min-width: 240px; }
     }
     input[type="url"]:focus {
       border-color: var(--violet);
@@ -251,7 +297,8 @@
     }
     input::placeholder { color: #444; }
     button.primary {
-      background: linear-gradient(135deg, var(--violet) 0%, var(--amber) 100%);
+      flex: 1 0 100%;
+      background: var(--grad-h);
       color: #0a0a0f;
       border: 0;
       padding: 16px 28px;
@@ -262,7 +309,9 @@
       transition: transform 0.05s, box-shadow 0.2s, filter 0.2s;
       font-family: inherit;
       letter-spacing: -0.01em;
+      min-height: 52px;
     }
+    @media (min-width: 520px) { button.primary { flex: 0 0 auto; } }
     button.primary:hover {
       box-shadow: 0 12px 32px rgba(167, 139, 250, 0.4);
       filter: brightness(1.08);
@@ -270,11 +319,13 @@
     button.primary:active { transform: translateY(1px); }
     button.primary:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
     .status {
-      margin-top: 16px;
+      margin-top: 14px;
       font-size: 14px;
       min-height: 20px;
       line-height: 1.45;
+      text-align: center;
     }
+    @media (min-width: 768px) { .status { text-align: left; } }
     .status.ok { color: var(--ok); }
     .status.err { color: var(--err); }
     .spinner {
@@ -291,16 +342,16 @@
 
     /* === Marquee de plataformas === */
     .marquee {
-      margin-top: 24px;
+      margin-top: 22px;
       overflow: hidden;
-      mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
-      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 10%, #000 90%, transparent 100%);
+      mask-image: linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
     }
     .marquee-track {
       display: flex;
-      gap: 38px;
+      gap: 32px;
       width: max-content;
-      animation: scroll-x 30s linear infinite;
+      animation: scroll-x 24s linear infinite;
       align-items: center;
     }
     .marquee-track:hover { animation-play-state: paused; }
@@ -309,24 +360,26 @@
       align-items: center;
       gap: 8px;
       color: var(--muted-2);
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       letter-spacing: -0.005em;
       transition: color 0.2s;
       flex-shrink: 0;
     }
     .mq-item:hover { color: var(--text); }
-    .mq-item svg { width: 18px; height: 18px; }
+    .mq-item svg { width: 16px; height: 16px; }
     @keyframes scroll-x {
       from { transform: translateX(0); }
-      to { transform: translateX(calc(-50% - 19px)); }
+      to { transform: translateX(calc(-50% - 16px)); }
     }
 
     /* === Section common === */
     .section {
-      margin-top: 80px;
-      scroll-margin-top: 24px;
+      margin-top: 72px;
+      scroll-margin-top: 72px;
+      text-align: center;
     }
+    @media (min-width: 768px) { .section { text-align: left; } }
     .section-eyebrow {
       font-size: 11px;
       letter-spacing: 0.18em;
@@ -339,35 +392,37 @@
       gap: 8px;
     }
     .section-eyebrow::before {
-      content: "";
-      width: 18px;
-      height: 1px;
+      content: ""; width: 18px; height: 1px;
       background: var(--violet);
     }
     .section-title {
-      font-size: clamp(28px, 4vw, 38px);
+      font-size: clamp(26px, 5vw, 38px);
       letter-spacing: -0.025em;
       font-weight: 700;
-      margin: 0 0 14px;
+      margin: 0 0 12px;
       line-height: 1.15;
     }
     .section-desc {
       color: var(--muted);
       max-width: 560px;
-      font-size: 16px;
+      font-size: 15px;
       line-height: 1.55;
-      margin: 0 0 32px;
+      margin: 0 auto 32px;
     }
+    @media (min-width: 768px) { .section-desc { margin-left: 0; } }
 
     /* === Platforms grid === */
     .platforms {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      grid-template-columns: repeat(3, 1fr);
       gap: 1px;
       background: var(--border-soft);
       border: 1px solid var(--border-soft);
       border-radius: 18px;
       overflow: hidden;
+    }
+    @media (min-width: 520px) {
+      .platforms { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
     }
     .plat {
       position: relative;
@@ -375,15 +430,12 @@
       flex-direction: column;
       align-items: center;
       gap: 10px;
-      padding: 26px 14px;
+      padding: 22px 12px;
       background: var(--panel);
-      transition: background 0.2s, transform 0.2s;
+      transition: background 0.2s;
     }
     .plat:hover { background: var(--panel-2); }
-    .plat .ico {
-      width: 28px; height: 28px;
-      transition: transform 0.3s;
-    }
+    .plat .ico { width: 28px; height: 28px; transition: transform 0.3s; }
     .plat:hover .ico { transform: scale(1.15); }
     .plat .label { font-size: 13px; font-weight: 600; color: var(--text); }
     .plat .badge {
@@ -402,37 +454,37 @@
     .plat[data-soon] .label { color: var(--muted); }
     .plat .ico-instagram { color: #e1306c; }
     .plat .ico-tiktok    { color: #69c9d0; }
-    .plat .ico-youtube   { color: #ff4b4b; }
     .plat .ico-twitter   { color: #ffffff; }
     .plat .ico-reddit    { color: #ff4500; }
     .plat .ico-pinterest { color: #e60023; }
-    .plat .ico-facebook  { color: #4267b2; }
-    .plat .ico-vimeo     { color: #1ab7ea; }
     .plat .ico-threads   { color: #ffffff; }
-    .plat .ico-twitch    { color: #9146ff; }
 
     /* === Steps === */
     .steps {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      grid-template-columns: 1fr;
       gap: 14px;
+    }
+    @media (min-width: 640px) {
+      .steps { grid-template-columns: repeat(3, 1fr); }
     }
     .step {
       position: relative;
-      padding: 28px 22px;
+      padding: 26px 22px;
       background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
       border: 1px solid var(--border);
       border-radius: 18px;
       overflow: hidden;
+      text-align: left;
     }
     .step-num {
       position: absolute;
-      top: 18px; right: 22px;
-      font-size: 60px;
+      top: 14px; right: 18px;
+      font-size: 56px;
       font-weight: 800;
       line-height: 1;
       letter-spacing: -0.05em;
-      background: linear-gradient(135deg, var(--violet), var(--amber));
+      background: var(--grad-h);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
@@ -445,22 +497,29 @@
       letter-spacing: -0.01em;
     }
     .step p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; max-width: 80%; }
-    .step .ico { width: 28px; height: 28px; color: var(--violet); margin-bottom: 16px; }
+    .step .ico { width: 28px; height: 28px; color: var(--violet); margin-bottom: 14px; }
 
     /* === Features grid === */
     .features {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 14px;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 520px) {
+      .features { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (min-width: 768px) {
+      .features { grid-template-columns: repeat(3, 1fr); }
     }
     .feat {
-      padding: 24px;
+      padding: 22px;
       background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
       border: 1px solid var(--border);
       border-radius: 18px;
       position: relative;
       overflow: hidden;
       transition: transform 0.2s, border-color 0.2s;
+      text-align: left;
     }
     .feat:hover {
       transform: translateY(-2px);
@@ -474,31 +533,18 @@
       background: linear-gradient(90deg, transparent, var(--violet), transparent);
       opacity: 0.4;
     }
-    .feat .ico {
-      width: 32px; height: 32px;
-      color: var(--amber);
-      margin-bottom: 16px;
-    }
+    .feat .ico { width: 28px; height: 28px; color: var(--amber); margin-bottom: 14px; }
     .feat h3 {
-      margin: 0 0 8px;
-      font-size: 16px;
+      margin: 0 0 6px;
+      font-size: 15px;
       font-weight: 700;
       color: var(--text);
       letter-spacing: -0.01em;
     }
-    .feat p {
-      margin: 0;
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.55;
-    }
+    .feat p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.55; }
 
     /* === FAQ === */
-    .faq-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
+    .faq-list { display: flex; flex-direction: column; gap: 8px; text-align: left; }
     .faq {
       background: var(--panel);
       border: 1px solid var(--border);
@@ -508,7 +554,7 @@
     }
     .faq[open] { border-color: rgba(167, 139, 250, 0.4); }
     .faq summary {
-      padding: 18px 22px;
+      padding: 16px 20px;
       cursor: pointer;
       list-style: none;
       display: flex;
@@ -516,116 +562,18 @@
       align-items: center;
       gap: 12px;
       font-weight: 600;
-      font-size: 15px;
+      font-size: 14px;
       transition: color 0.15s;
     }
     .faq summary::-webkit-details-marker { display: none; }
     .faq summary::after {
-      content: "+";
-      font-size: 24px;
-      font-weight: 300;
+      content: "+"; font-size: 22px; font-weight: 300;
       color: var(--muted);
       transition: transform 0.2s, color 0.2s;
     }
     .faq[open] summary::after { transform: rotate(45deg); color: var(--violet); }
     .faq summary:hover { color: var(--violet); }
-    .faq .ans {
-      padding: 0 22px 20px;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    /* === CTA install === */
-    .cta-install {
-      margin-top: 80px;
-      padding: 36px;
-      background: linear-gradient(135deg, rgba(167,139,250,0.08) 0%, rgba(251,191,36,0.06) 100%);
-      border: 1px solid rgba(167,139,250,0.25);
-      border-radius: 22px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-    .cta-install::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(600px 200px at 50% 100%, rgba(167,139,250,0.15), transparent);
-      pointer-events: none;
-    }
-    .cta-install h3 {
-      font-size: 24px;
-      margin: 0 0 8px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-    .cta-install p { color: var(--muted); margin: 0 0 22px; font-size: 15px; }
-    .cta-install .row { justify-content: center; }
-    .btn-secondary {
-      background: var(--panel-2);
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 14px 22px;
-      border-radius: 12px;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.15s;
-    }
-    .btn-secondary:hover { border-color: var(--violet); }
-
-    /* === Install banner (mobile) === */
-    .install-banner {
-      position: fixed;
-      bottom: 16px;
-      left: 16px;
-      right: 16px;
-      max-width: 460px;
-      margin: 0 auto;
-      padding: 14px 16px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-      display: none;
-      align-items: center;
-      gap: 14px;
-      z-index: 100;
-      animation: slide-up 0.4s ease-out;
-    }
-    @keyframes slide-up {
-      from { transform: translateY(120%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    .install-banner.show { display: flex; }
-    .install-banner img.icon { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; }
-    .install-banner .text { flex: 1; min-width: 0; }
-    .install-banner .text strong { font-size: 14px; display: block; }
-    .install-banner .text small { font-size: 12px; color: var(--muted); }
-    .install-banner .btn-install {
-      background: linear-gradient(135deg, var(--violet), var(--amber));
-      color: #0a0a0f;
-      border: 0;
-      padding: 9px 14px;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 13px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-    .install-banner .close {
-      background: transparent;
-      border: 0;
-      color: var(--muted);
-      cursor: pointer;
-      font-size: 20px;
-      padding: 4px 8px;
-      flex-shrink: 0;
-    }
+    .faq .ans { padding: 0 20px 18px; color: var(--muted); font-size: 14px; line-height: 1.6; }
 
     /* === iOS install modal === */
     .ios-modal {
@@ -646,6 +594,10 @@
       width: 100%;
       animation: slide-up 0.3s ease-out;
     }
+    @keyframes slide-up {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
     .ios-modal h3 { margin: 0 0 12px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
     .ios-modal ol { margin: 16px 0; padding-left: 18px; color: var(--muted); font-size: 14px; line-height: 1.7; }
     .ios-modal ol b { color: var(--text); }
@@ -655,13 +607,25 @@
       vertical-align: -5px;
       color: var(--violet);
     }
+    .btn-close {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      width: 100%;
+    }
 
     /* === Footer === */
     footer {
       max-width: 920px;
       width: 100%;
-      margin: 80px auto 0;
-      padding: 28px 20px 96px;
+      margin: 64px auto 0;
+      padding: 28px 20px 36px;
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
@@ -676,6 +640,10 @@
       align-items: center;
       gap: 14px;
       flex-wrap: wrap;
+      justify-content: center;
+    }
+    @media (max-width: 600px) {
+      footer { justify-content: center; flex-direction: column; text-align: center; }
     }
     footer a {
       color: var(--muted);
@@ -704,16 +672,22 @@
     .coffee .ico { width: 16px; height: 16px; color: #1a1100; }
     .dot { color: var(--muted-2); }
     .disclaimer { font-size: 11px; opacity: 0.7; }
-
-    @media (max-width: 520px) {
-      .platforms { grid-template-columns: repeat(3, 1fr); }
-      footer { justify-content: center; text-align: center; }
-      .step-num { font-size: 48px; }
-    }
   </style>
 </head>
 <body>
 
+<!-- ============= TOP INSTALL BANNER ============= -->
+<div class="install-bar" id="install-bar">
+  <img class="ib-icon" src="/icon-192.png" alt="">
+  <div class="ib-text">
+    <span id="ib-title">Instala Muse en tu celular</span>
+    <span class="ib-sub" id="ib-sub">Acceso directo desde tu home</span>
+  </div>
+  <button class="ib-btn" id="ib-action">Instalar</button>
+  <button class="ib-close" id="ib-close" aria-label="Cerrar">×</button>
+</div>
+
+<!-- Animated background -->
 <div class="bg-mesh">
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
@@ -723,7 +697,12 @@
 <!-- ============= ICON LIBRARY ============= -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
-    <!-- Generic action / feature icons -->
+    <linearGradient id="muse-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#c4b5fd"/>
+      <stop offset="50%" stop-color="#f472b6"/>
+      <stop offset="100%" stop-color="#fbbf24"/>
+    </linearGradient>
+
     <symbol id="i-archive" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h18v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8Z"/><path d="M3 8l2-4h14l2 4"/><path d="M10 13h4"/></symbol>
     <symbol id="i-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.5L13 4H4v9l7.5 7.5a2 2 0 0 0 2.8 0l6.2-6.2a2 2 0 0 0 0-2.8Z"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/></symbol>
     <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l8 3.5v6c0 5-3.5 9.2-8 10-4.5-.8-8-5-8-10V6l8-3.5Z"/><path d="M9 12l2.2 2.2L15 10.5"/></symbol>
@@ -737,7 +716,7 @@
     <symbol id="i-share-ios" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></symbol>
     <symbol id="i-plus-square" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8"/><path d="M8 12h8"/></symbol>
 
-    <!-- Platform icons (abstract / minimalist representations) -->
+    <!-- Platform icons -->
     <symbol id="p-instagram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
       <rect x="3" y="3" width="18" height="18" rx="5"/>
       <circle cx="12" cy="12" r="4"/>
@@ -745,9 +724,6 @@
     </symbol>
     <symbol id="p-tiktok" viewBox="0 0 24 24" fill="currentColor">
       <path d="M16.5 2c.3 1.7 1.4 3.1 2.9 3.8.7.3 1.4.5 2.1.5v3.2c-1.7 0-3.4-.5-4.8-1.4v6.5c0 3.6-2.9 6.4-6.4 6.4-3.6 0-6.4-2.9-6.4-6.4 0-3.6 2.9-6.4 6.4-6.4.3 0 .6 0 .9.1v3.4c-.3-.1-.6-.2-.9-.2-1.7 0-3.1 1.4-3.1 3.1 0 1.7 1.4 3.1 3.1 3.1 1.7 0 3.1-1.4 3.1-3.1V2h3.1z"/>
-    </symbol>
-    <symbol id="p-youtube" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M22.5 6.4c-.3-1-1-1.7-2-2C18.7 4 12 4 12 4s-6.7 0-8.5.4c-1 .3-1.7 1-2 2C1 8.2 1 12 1 12s0 3.8.4 5.6c.3 1 1 1.7 2 2 1.8.4 8.5.4 8.5.4s6.7 0 8.5-.4c1-.3 1.7-1 2-2 .4-1.8.4-5.6.4-5.6s0-3.8-.4-5.6zM10 15.5v-7l6 3.5-6 3.5z"/>
     </symbol>
     <symbol id="p-twitter" viewBox="0 0 24 24" fill="currentColor">
       <path d="M18.4 2H21l-7 8 8.2 12H16l-5-7-6 7H2.5l7.4-8.5L2 2h6.6l4.6 6.4L18.4 2zm-1.1 18h1.7L7.4 4H5.6l11.7 16z"/>
@@ -763,17 +739,13 @@
     <symbol id="p-pinterest" viewBox="0 0 24 24" fill="currentColor">
       <path d="M12 2C6.5 2 2 6.5 2 12c0 4.2 2.6 7.8 6.3 9.3-.1-.8-.2-2 0-2.9.2-.8 1.3-5.4 1.3-5.4s-.3-.7-.3-1.7c0-1.6.9-2.8 2.1-2.8 1 0 1.5.7 1.5 1.6 0 1-.6 2.5-1 3.8-.3 1.1.6 2.1 1.7 2.1 2.1 0 3.6-2.6 3.6-5.7 0-2.3-1.6-4.1-4.5-4.1-3.3 0-5.4 2.5-5.4 5.2 0 .9.3 1.6.7 2.1.2.2.2.3.1.5l-.3 1.1c-.1.3-.3.5-.6.3-1.5-.6-2.2-2.3-2.2-4.2 0-3.1 2.6-6.8 7.9-6.8 4.2 0 7 3.1 7 6.4 0 4.3-2.4 7.6-6 7.6-1.2 0-2.3-.7-2.7-1.4l-.7 2.9c-.3 1-.9 2-1.4 2.7C10 21.9 11 22 12 22c5.5 0 10-4.5 10-10S17.5 2 12 2z"/>
     </symbol>
-    <symbol id="p-facebook" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M22 12C22 6.5 17.5 2 12 2S2 6.5 2 12c0 5 3.7 9.1 8.4 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7C18.3 21.1 22 17 22 12z"/>
-    </symbol>
-    <symbol id="p-vimeo" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M22 7.4c-.1 2-1.5 4.7-4.2 8.2-2.8 3.6-5.2 5.4-7.1 5.4-1.2 0-2.2-1.1-3-3.3l-1.6-6c-.6-2.2-1.3-3.3-2-3.3-.2 0-.7.3-1.6 1L1.5 7.7c1-1 2.1-1.9 3.1-2.8C6 4 7.1 3.5 7.9 3.4 9.7 3.2 10.9 4.5 11.4 7.2c.5 2.9.9 4.7 1.1 5.4.6 2 1.3 3 2 3 .6 0 1.5-.9 2.7-2.7 1.2-1.8 1.8-3.2 1.9-4.1.1-.9-.2-1.4-1-1.4-.4 0-.8.1-1.2.3.8-2.6 2.3-3.9 4.6-3.8 1.7.1 2.5 1.2 2.5 3.5z"/>
-    </symbol>
     <symbol id="p-threads" viewBox="0 0 24 24" fill="currentColor">
       <path d="M12 2c-5 0-9 3.5-9 9 0 6 3.5 11 9 11s9-3.7 9-9c0-3.5-2-6.4-5.5-6.4-1.7 0-3 .5-4 1.4l1.2 1.7c.7-.6 1.5-.9 2.7-.9 2.4 0 3.7 1.7 3.7 4.2 0 3.6-2.7 6-6.1 6-3.7 0-5.8-2.7-5.8-7.5 0-4.5 2.6-7.4 6.7-7.4 2.5 0 4.4 1 5.5 2.6l1.7-1.2C15.7 3.4 14.1 2 12 2zm.6 9c-1.7 0-2.7.7-2.7 1.9 0 1.1.9 1.7 2.2 1.7 1.6 0 2.7-1 2.7-2.5v-.5c-.5-.4-1.2-.6-2.2-.6z"/>
     </symbol>
-    <symbol id="p-twitch" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M4 2L2 6v14h5v3h3l3-3h4l5-5V2H4zm17 11l-3 3h-5l-3 3v-3H7V4h14v9zm-3-7v6h-2V6h2zm-5 0v6h-2V6h2z"/>
+
+    <!-- Sparkle logo path (used inline) -->
+    <symbol id="muse-sparkle" viewBox="0 0 100 100">
+      <path d="M50 4 Q54.14 45.86 96 50 Q54.14 54.14 50 96 Q45.86 54.14 4 50 Q45.86 45.86 50 4 Z" fill="url(#muse-grad)"/>
     </symbol>
   </defs>
 </svg>
@@ -781,16 +753,7 @@
 <div class="wrap">
   <header class="topbar">
     <a class="brand-link" href="#top">
-      <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="muse-g" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#a78bfa"/>
-            <stop offset="100%" stop-color="#fbbf24"/>
-          </linearGradient>
-        </defs>
-        <path d="M 15 78 L 15 25 L 50 58 L 85 25 L 85 78" stroke="url(#muse-g)" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M 38 70 L 50 86 L 62 70" stroke="url(#muse-g)" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
+      <svg class="logo" viewBox="0 0 100 100"><use href="#muse-sparkle"/></svg>
       <span class="brand">muse</span>
     </a>
     <div class="topnav">
@@ -799,13 +762,13 @@
     </div>
   </header>
 
-  <section id="top">
+  <section class="hero" id="top">
     <h1>Guarda <span class="gradient-text">lo que te inspira</span> en un click.</h1>
-    <p class="lead">Posts, reels, carruseles, stories, videos. De Instagram, TikTok, YouTube, X y más. Máxima calidad, sin marca de agua, sin login.</p>
+    <p class="lead">Posts, reels, carruseles, stories y videos. De Instagram, TikTok, X, Reddit y Pinterest. Máxima calidad, sin marca de agua, sin login.</p>
     <div class="stats">
-      <span class="stat"><strong>10+</strong> plataformas</span>
+      <span class="stat"><strong>5</strong> plataformas</span>
       <span class="stat-sep">·</span>
-      <span class="stat"><strong>HD/4K</strong> calidad original</span>
+      <span class="stat"><strong>HD</strong> calidad original</span>
       <span class="stat-sep">·</span>
       <span class="stat"><strong>Cero</strong> marca de agua</span>
       <span class="stat-sep">·</span>
@@ -825,27 +788,17 @@
 
       <div class="marquee">
         <div class="marquee-track">
-          <span class="mq-item"><svg class="ico-instagram"><use href="#p-instagram"/></svg>Instagram</span>
-          <span class="mq-item"><svg class="ico-tiktok"><use href="#p-tiktok"/></svg>TikTok</span>
-          <span class="mq-item"><svg class="ico-youtube"><use href="#p-youtube"/></svg>YouTube</span>
-          <span class="mq-item"><svg class="ico-twitter"><use href="#p-twitter"/></svg>X / Twitter</span>
-          <span class="mq-item"><svg class="ico-reddit"><use href="#p-reddit"/></svg>Reddit</span>
-          <span class="mq-item"><svg class="ico-pinterest"><use href="#p-pinterest"/></svg>Pinterest</span>
-          <span class="mq-item"><svg class="ico-facebook"><use href="#p-facebook"/></svg>Facebook</span>
-          <span class="mq-item"><svg class="ico-vimeo"><use href="#p-vimeo"/></svg>Vimeo</span>
-          <span class="mq-item"><svg class="ico-twitch"><use href="#p-twitch"/></svg>Twitch</span>
-          <span class="mq-item"><svg class="ico-threads"><use href="#p-threads"/></svg>Threads</span>
+          <span class="mq-item"><svg style="color:#e1306c"><use href="#p-instagram"/></svg>Instagram</span>
+          <span class="mq-item"><svg style="color:#69c9d0"><use href="#p-tiktok"/></svg>TikTok</span>
+          <span class="mq-item"><svg style="color:#fff"><use href="#p-twitter"/></svg>X / Twitter</span>
+          <span class="mq-item"><svg style="color:#ff4500"><use href="#p-reddit"/></svg>Reddit</span>
+          <span class="mq-item"><svg style="color:#e60023"><use href="#p-pinterest"/></svg>Pinterest</span>
 
-          <span class="mq-item"><svg class="ico-instagram"><use href="#p-instagram"/></svg>Instagram</span>
-          <span class="mq-item"><svg class="ico-tiktok"><use href="#p-tiktok"/></svg>TikTok</span>
-          <span class="mq-item"><svg class="ico-youtube"><use href="#p-youtube"/></svg>YouTube</span>
-          <span class="mq-item"><svg class="ico-twitter"><use href="#p-twitter"/></svg>X / Twitter</span>
-          <span class="mq-item"><svg class="ico-reddit"><use href="#p-reddit"/></svg>Reddit</span>
-          <span class="mq-item"><svg class="ico-pinterest"><use href="#p-pinterest"/></svg>Pinterest</span>
-          <span class="mq-item"><svg class="ico-facebook"><use href="#p-facebook"/></svg>Facebook</span>
-          <span class="mq-item"><svg class="ico-vimeo"><use href="#p-vimeo"/></svg>Vimeo</span>
-          <span class="mq-item"><svg class="ico-twitch"><use href="#p-twitch"/></svg>Twitch</span>
-          <span class="mq-item"><svg class="ico-threads"><use href="#p-threads"/></svg>Threads</span>
+          <span class="mq-item"><svg style="color:#e1306c"><use href="#p-instagram"/></svg>Instagram</span>
+          <span class="mq-item"><svg style="color:#69c9d0"><use href="#p-tiktok"/></svg>TikTok</span>
+          <span class="mq-item"><svg style="color:#fff"><use href="#p-twitter"/></svg>X / Twitter</span>
+          <span class="mq-item"><svg style="color:#ff4500"><use href="#p-reddit"/></svg>Reddit</span>
+          <span class="mq-item"><svg style="color:#e60023"><use href="#p-pinterest"/></svg>Pinterest</span>
         </div>
       </div>
     </div>
@@ -853,19 +806,15 @@
 
   <section class="section" id="platforms">
     <div class="section-eyebrow">Soporta</div>
-    <h2 class="section-title">Descarga de cualquier red.</h2>
-    <p class="section-desc">El mismo botón sirve para todas. Pega el link, recibe el archivo. Sin saltar entre apps ni instalar 5 extensiones.</p>
+    <h2 class="section-title">Las redes que más usas.</h2>
+    <p class="section-desc">El mismo botón sirve para todas. Pega el link, recibe el archivo. Sin saltar entre apps.</p>
     <div class="platforms">
       <div class="plat"><svg class="ico ico-instagram"><use href="#p-instagram"/></svg><span class="label">Instagram</span></div>
       <div class="plat"><svg class="ico ico-tiktok"><use href="#p-tiktok"/></svg><span class="label">TikTok</span></div>
-      <div class="plat"><svg class="ico ico-youtube"><use href="#p-youtube"/></svg><span class="label">YouTube</span></div>
       <div class="plat"><svg class="ico ico-twitter"><use href="#p-twitter"/></svg><span class="label">X / Twitter</span></div>
       <div class="plat"><svg class="ico ico-reddit"><use href="#p-reddit"/></svg><span class="label">Reddit</span></div>
       <div class="plat"><svg class="ico ico-pinterest"><use href="#p-pinterest"/></svg><span class="label">Pinterest</span></div>
-      <div class="plat"><svg class="ico ico-facebook"><use href="#p-facebook"/></svg><span class="label">Facebook</span></div>
-      <div class="plat"><svg class="ico ico-vimeo"><use href="#p-vimeo"/></svg><span class="label">Vimeo</span></div>
       <div class="plat" data-soon><span class="badge">Soon</span><svg class="ico ico-threads"><use href="#p-threads"/></svg><span class="label">Threads</span></div>
-      <div class="plat" data-soon><span class="badge">Soon</span><svg class="ico ico-twitch"><use href="#p-twitch"/></svg><span class="label">Twitch</span></div>
     </div>
   </section>
 
@@ -908,17 +857,17 @@
       <div class="feat">
         <svg class="ico"><use href="#i-tag"/></svg>
         <h3>Nombres inteligentes</h3>
-        <p>Cada descarga lleva el autor, la fecha y las primeras palabras del caption. Adiós a "video.mp4".</p>
+        <p>Cada descarga lleva el autor, la fecha y las primeras palabras del caption.</p>
       </div>
       <div class="feat">
         <svg class="ico"><use href="#i-sparkle"/></svg>
         <h3>Calidad original</h3>
-        <p>Bajamos la versión más alta disponible: HD/4K, audio estéreo, sin recompresión.</p>
+        <p>Bajamos la versión más alta disponible. Sin recompresión.</p>
       </div>
       <div class="feat">
         <svg class="ico"><use href="#i-noads"/></svg>
         <h3>Sin marca de agua</h3>
-        <p>El archivo llega como el creador lo subió. Sin overlays, sin watermarks de servicios terceros.</p>
+        <p>El archivo llega como el creador lo subió. Sin overlays.</p>
       </div>
       <div class="feat">
         <svg class="ico"><use href="#i-shield"/></svg>
@@ -943,50 +892,30 @@
       </details>
       <details class="faq">
         <summary>¿Guardan mis descargas o mis links?</summary>
-        <div class="ans">No. El archivo se procesa en memoria y se borra del servidor al instante. No guardamos historial, no rastreamos qué descargas, no compartimos nada con terceros.</div>
+        <div class="ans">No. El archivo se procesa en memoria y se borra del servidor al instante. No guardamos historial ni rastreamos qué descargas.</div>
       </details>
       <details class="faq">
         <summary>¿De qué plataformas puedo descargar?</summary>
-        <div class="ans">Instagram (posts, reels, carruseles, stories), TikTok, YouTube, X/Twitter, Reddit, Pinterest, Facebook, Vimeo. Threads y Twitch están en camino.</div>
+        <div class="ans">Instagram (posts, reels, carruseles, stories), TikTok, X/Twitter, Reddit y Pinterest. Threads viene pronto.</div>
       </details>
       <details class="faq">
         <summary>¿Por qué a veces tarda en empezar?</summary>
-        <div class="ans">El servidor se duerme tras 15 minutos sin uso para ahorrar recursos (somos gratis). La primera descarga después del descanso tarda ~30 segundos en levantar el sistema. Después responde al instante.</div>
+        <div class="ans">El servidor se duerme tras 15 minutos sin uso para ahorrar recursos. La primera descarga después del descanso tarda ~30 segundos en levantar el sistema. Después responde al instante.</div>
       </details>
       <details class="faq">
         <summary>¿Puedo descargar contenido de cuentas privadas?</summary>
-        <div class="ans">Solo si tienes acceso autorizado a esas cuentas. No bypaseamos privacidad de nadie. Para uso personal y respetando derechos del creador.</div>
+        <div class="ans">Solo si tienes acceso autorizado. No bypaseamos privacidad de nadie.</div>
       </details>
       <details class="faq">
         <summary>¿Es legal?</summary>
-        <div class="ans">Para uso personal en la mayoría de jurisdicciones, sí. No redistribuyas contenido ajeno comercialmente. Respeta los derechos del creador y los términos de cada plataforma.</div>
+        <div class="ans">Para uso personal en la mayoría de jurisdicciones, sí. Respeta los derechos del creador y los términos de cada plataforma.</div>
       </details>
       <details class="faq">
         <summary>¿Puedo instalarlo como app en mi celular?</summary>
-        <div class="ans">¡Sí! Es una PWA. En Android tu navegador te ofrecerá instalarla automáticamente. En iOS: Compartir → Añadir a pantalla de inicio. Funciona como una app nativa, abre rápido y queda en tu home.</div>
+        <div class="ans">¡Sí! Es una PWA. En Android tu navegador te ofrecerá instalarla con el banner de arriba. En iOS: Compartir → Añadir a pantalla de inicio. Funciona como app nativa.</div>
       </details>
     </div>
   </section>
-
-  <div class="cta-install" id="cta-install">
-    <h3>Instala Muse en tu celular.</h3>
-    <p>Funciona como app nativa. Sin pasar por el navegador. Un toque y descargas.</p>
-    <div class="row">
-      <button class="btn-secondary" id="install-android">Instalar en Android</button>
-      <button class="btn-secondary" id="install-ios">Instalar en iPhone</button>
-    </div>
-  </div>
-</div>
-
-<!-- Floating install banner (mobile only, auto-shown) -->
-<div class="install-banner" id="install-banner">
-  <img class="icon" src="/icon-192.png" alt="Muse">
-  <div class="text">
-    <strong>Instala Muse</strong>
-    <small>Acceso directo desde tu home</small>
-  </div>
-  <button class="btn-install" id="banner-install">Instalar</button>
-  <button class="close" id="banner-close" aria-label="Cerrar">×</button>
 </div>
 
 <!-- iOS install instructions modal -->
@@ -999,7 +928,7 @@
       <li>Desplaza hacia abajo y toca <b>Añadir a pantalla de inicio</b> <svg class="ios-share-icon"><use href="#i-plus-square"/></svg>.</li>
       <li>Toca <b>Añadir</b> arriba a la derecha.</li>
     </ol>
-    <button class="btn-secondary" style="width:100%; margin-top: 8px;" id="ios-close">Entendido</button>
+    <button class="btn-close" id="ios-close">Entendido</button>
   </div>
 </div>
 
@@ -1010,8 +939,6 @@
     <a href="#" id="privacy"><svg class="ico-sm"><use href="#i-lock"/></svg>Privacidad</a>
     <span class="dot">·</span>
     <a href="#faq">FAQ</a>
-    <span class="dot">·</span>
-    <span class="disclaimer">Para uso personal. Respeta a los creadores.</span>
   </div>
   <div class="foot-right">
     <a class="credit" href="https://www.instagram.com/dariomz" target="_blank" rel="noopener">
@@ -1031,7 +958,6 @@
 <script>
   const BACKEND_URL = "https://instagram-downloader-3umo.onrender.com";
 
-  // === Form ===
   const form = document.getElementById('form');
   const btn = document.getElementById('btn');
   const status = document.getElementById('status');
@@ -1091,14 +1017,12 @@
     }
   });
 
-  // === PWA Install ===
-  let deferredPrompt = null;
-  const banner = document.getElementById('install-banner');
-  const bannerInstall = document.getElementById('banner-install');
-  const bannerClose = document.getElementById('banner-close');
-  const ctaInstall = document.getElementById('cta-install');
-  const installAndroid = document.getElementById('install-android');
-  const installIOS = document.getElementById('install-ios');
+  // === PWA install ===
+  const installBar = document.getElementById('install-bar');
+  const ibTitle = document.getElementById('ib-title');
+  const ibSub = document.getElementById('ib-sub');
+  const ibAction = document.getElementById('ib-action');
+  const ibClose = document.getElementById('ib-close');
   const iosModal = document.getElementById('ios-modal');
   const iosClose = document.getElementById('ios-close');
 
@@ -1106,61 +1030,56 @@
     || window.navigator.standalone === true;
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const isAndroid = /Android/.test(navigator.userAgent);
+  const isMobile = isIOS || isAndroid;
   const dismissed = localStorage.getItem('muse-install-dismissed');
 
-  // Hide CTA section if already installed
-  if (isStandalone) ctaInstall.style.display = 'none';
+  let deferredPrompt = null;
 
-  // Adjust CTA buttons by platform
-  if (isIOS && !isAndroid) installAndroid.style.display = 'none';
-  if (isAndroid && !isIOS) installIOS.style.display = 'none';
-
-  // Show iOS modal on click (or auto on banner click)
-  function showIOSModal() {
-    iosModal.classList.add('show');
-  }
+  function showIOSModal() { iosModal.classList.add('show'); }
   iosClose.addEventListener('click', () => iosModal.classList.remove('show'));
-  iosModal.addEventListener('click', (e) => { if (e.target === iosModal) iosModal.classList.remove('show'); });
-  installIOS.addEventListener('click', showIOSModal);
-
-  // Android install handler
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    if (!isStandalone && !dismissed) banner.classList.add('show');
+  iosModal.addEventListener('click', (e) => {
+    if (e.target === iosModal) iosModal.classList.remove('show');
   });
 
-  async function triggerInstall() {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const choice = await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    banner.classList.remove('show');
-    if (choice.outcome === 'accepted') {
-      localStorage.setItem('muse-install-dismissed', '1');
-    }
-  }
-  bannerInstall.addEventListener('click', triggerInstall);
-  installAndroid.addEventListener('click', () => {
-    if (deferredPrompt) triggerInstall();
-    else alert('Tu navegador no soporta instalación automática. Usa Chrome o Edge en Android, o consulta la sección iOS si estás en iPhone.');
-  });
-
-  bannerClose.addEventListener('click', () => {
-    banner.classList.remove('show');
+  ibClose.addEventListener('click', () => {
+    installBar.classList.remove('show');
     localStorage.setItem('muse-install-dismissed', '1');
   });
 
-  // iOS auto-banner: show invite if iOS Safari + not standalone + not dismissed
+  // Android: capture prompt event
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (!isStandalone && !dismissed) {
+      ibTitle.textContent = 'Instala Muse en tu Android';
+      ibSub.textContent = 'Acceso directo desde tu home, abre rápido';
+      ibAction.textContent = 'Instalar';
+      installBar.classList.add('show');
+    }
+  });
+
+  ibAction.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBar.classList.remove('show');
+      if (choice.outcome === 'accepted') {
+        localStorage.setItem('muse-install-dismissed', '1');
+      }
+    } else if (isIOS) {
+      showIOSModal();
+    }
+  });
+
+  // iOS auto-show
   if (isIOS && !isStandalone && !dismissed) {
     setTimeout(() => {
-      banner.querySelector('.text strong').textContent = 'Añade Muse a tu iPhone';
-      banner.querySelector('.text small').textContent = 'Compartir → Añadir a pantalla de inicio';
-      bannerInstall.textContent = 'Cómo';
-      bannerInstall.removeEventListener('click', triggerInstall);
-      bannerInstall.addEventListener('click', showIOSModal);
-      banner.classList.add('show');
-    }, 1200);
+      ibTitle.textContent = 'Instala Muse en tu iPhone';
+      ibSub.textContent = 'Toca para ver cómo añadirla';
+      ibAction.textContent = 'Cómo';
+      installBar.classList.add('show');
+    }, 600);
   }
 
   // === Service Worker ===

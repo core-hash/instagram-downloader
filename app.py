@@ -29,16 +29,18 @@ MEDIA_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov", ".heic", ".m4a",
 NETSCAPE_HEADER = "# Netscape HTTP Cookie File\n# Auto-generated.\n\n"
 
 PLATFORM_RULES = [
-    ("instagram", r"instagram\.com|cdninstagram\.com",                    "gallery-dl"),
-    ("tiktok",    r"tiktok\.com|vm\.tiktok\.com",                         "yt-dlp"),
-    ("youtube",   r"youtube\.com|youtu\.be|youtube-nocookie\.com",        "yt-dlp"),
-    ("twitter",   r"twitter\.com|x\.com",                                 "gallery-dl"),
-    ("reddit",    r"reddit\.com|redd\.it",                                "gallery-dl"),
-    ("pinterest", r"pinterest\.|pin\.it",                                 "gallery-dl"),
-    ("facebook",  r"facebook\.com|fb\.watch|fb\.com",                     "yt-dlp"),
-    ("vimeo",     r"vimeo\.com",                                          "yt-dlp"),
-    ("twitch",    r"twitch\.tv|clips\.twitch\.tv",                        "yt-dlp"),
-    ("threads",   r"threads\.net",                                        "gallery-dl"),
+    ("instagram", r"instagram\.com|cdninstagram\.com",   "gallery-dl"),
+    ("tiktok",    r"tiktok\.com|vm\.tiktok\.com",        "yt-dlp"),
+    ("twitter",   r"twitter\.com|x\.com",                "gallery-dl"),
+    ("reddit",    r"reddit\.com|redd\.it",               "gallery-dl"),
+    ("pinterest", r"pinterest\.|pin\.it",                "gallery-dl"),
+]
+
+UNSUPPORTED_PATTERNS = [
+    (r"youtube\.com|youtu\.be",                          "YouTube no está soportado actualmente."),
+    (r"facebook\.com|fb\.watch|fb\.com",                 "Facebook no está soportado actualmente."),
+    (r"vimeo\.com",                                      "Vimeo no está soportado actualmente."),
+    (r"twitch\.tv",                                      "Twitch no está soportado actualmente."),
 ]
 
 
@@ -318,6 +320,10 @@ def download():
     url = (data.get("url") or "").strip()
     if not url or not re.match(r"^https?://", url):
         return jsonify({"error": "URL no válida. Pega un link completo (con https://)."}), 400
+
+    for pattern, msg in UNSUPPORTED_PATTERNS:
+        if re.search(pattern, url, re.IGNORECASE):
+            return jsonify({"error": f"{msg} Plataformas activas: Instagram, TikTok, X, Reddit, Pinterest."}), 422
 
     platform, primary_tool = detect_platform(url)
     fallback_id = extract_short_id(url)
