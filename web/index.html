@@ -324,6 +324,11 @@
     }
     @media (min-width: 520px) { .input-wrap { min-width: 240px; } }
 
+    /* Bulk mode: textarea + button stacked, full width within the card */
+    form.bulk .row { flex-direction: column; align-items: stretch; }
+    form.bulk .input-wrap { min-width: 100%; width: 100%; }
+    form.bulk button.primary { width: 100%; flex: 0 0 100%; min-width: 100%; }
+
     .row { display: flex; gap: 10px; flex-wrap: wrap; }
     input[type="url"], textarea {
       width: 100%;
@@ -1524,7 +1529,7 @@
       newPaste.addEventListener('click', handleInputBtn);
       inputWrap.appendChild(newPaste);
     }
-    inputWrap.style.minWidth = '100%';
+    form.classList.toggle('bulk', bulkMode);
   }
 
   function updateBulkUI() {
