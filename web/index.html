@@ -136,6 +136,12 @@
     .brand {
       font-size: 22px; font-weight: 700; letter-spacing: -0.02em;
       background: var(--grad-h); -webkit-background-clip: text; background-clip: text; color: transparent;
+      position: relative;
+    }
+    .brand-dot {
+      color: var(--amber);
+      -webkit-text-fill-color: var(--amber);
+      margin-left: -2px;
     }
     .topnav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .pill {
@@ -458,73 +464,125 @@
     .feat h3 { margin: 0 0 6px; font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
     .feat p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.55; }
 
-    /* === Credit card === */
+    /* === Credit card (agency showcase) === */
     .credit-card {
       position: relative;
       margin: 96px auto 0;
-      padding: 48px 32px;
+      padding: 36px 28px 28px;
       background:
-        radial-gradient(800px 300px at 50% -20%, rgba(244, 114, 182, 0.18), transparent 60%),
+        radial-gradient(600px 200px at 50% 0%, rgba(167, 139, 250, 0.10), transparent 70%),
         linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
       border: 1px solid var(--border);
-      border-radius: 24px;
+      border-radius: 20px;
       overflow: hidden;
       text-align: center;
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
     }
     .credit-card::before {
-      content: ""; position: absolute; inset: -1px;
-      border-radius: 24px; padding: 1px;
-      background: linear-gradient(135deg, rgba(244, 114, 182, 0.5), transparent 40%, rgba(167, 139, 250, 0.3) 60%, transparent 90%);
-      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask-composite: xor; mask-composite: exclude;
-      pointer-events: none;
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.6), rgba(244, 114, 182, 0.5), rgba(251, 191, 36, 0.6), transparent);
     }
-    .credit-sparkle {
-      position: absolute; width: 180px; height: 180px;
-      opacity: 0.10; filter: blur(0.5px); pointer-events: none;
+    .credit-mark {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 14px 6px 8px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 999px;
+      margin-bottom: 18px;
     }
-    .credit-sparkle.left { top: -40px; left: -40px; transform: rotate(-15deg); }
-    .credit-sparkle.right { bottom: -40px; right: -40px; transform: rotate(20deg); }
-    .credit-eyebrow {
-      font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
-      color: var(--muted); font-weight: 700; margin: 0 0 6px;
+    .credit-mark-icon {
+      width: 18px; height: 18px;
     }
-    .credit-name {
-      font-size: clamp(40px, 8vw, 72px); font-weight: 800;
-      letter-spacing: -0.04em; margin: 0 0 14px; line-height: 1;
+    .credit-mark-label {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
     }
-    .credit-name a {
-      text-decoration: none;
+    .credit-agency {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 0 0 14px;
+    }
+    .credit-agency-name {
+      font-size: clamp(28px, 4.5vw, 40px);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      line-height: 1;
       background: var(--grad-h);
-      -webkit-background-clip: text; background-clip: text;
-      color: transparent;
-      transition: filter 0.2s;
+      -webkit-background-clip: text; background-clip: text; color: transparent;
     }
-    .credit-name a:hover { filter: brightness(1.15); }
-    .credit-tagline { font-size: clamp(15px, 2vw, 18px); color: var(--muted); margin: 0 0 28px; font-weight: 500; }
-    .credit-tagline strong { color: var(--text); font-weight: 700; }
-    .credit-tagline .agency-tag {
-      display: inline-block; padding: 3px 10px; margin-left: 6px;
-      background: linear-gradient(135deg, rgba(167, 139, 250, 0.18), rgba(251, 191, 36, 0.14));
-      border: 1px solid rgba(167, 139, 250, 0.3);
-      color: var(--text); border-radius: 999px;
-      font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
-      text-transform: uppercase; vertical-align: 2px;
+    .credit-agency-tag {
+      padding: 4px 11px;
+      background: linear-gradient(135deg, rgba(167, 139, 250, 0.14), rgba(251, 191, 36, 0.10));
+      border: 1px solid rgba(167, 139, 250, 0.30);
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text);
     }
-    .credit-buttons { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-    .credit-buttons a {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 12px 20px; border-radius: 12px;
-      font-size: 14px; font-weight: 700; text-decoration: none;
-      transition: all 0.15s;
+    .credit-pitch {
+      max-width: 480px;
+      margin: 0 auto 24px;
+      font-size: 15px;
+      line-height: 1.6;
+      color: var(--muted);
     }
-    .cta-credit { background: var(--text); color: #0a0a0f; }
-    .cta-credit:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(245, 245, 247, 0.18); }
-    .cta-agency { background: transparent; color: var(--text); border: 1px solid var(--border); }
-    .cta-agency:hover { border-color: var(--violet); background: rgba(167, 139, 250, 0.08); }
-    .cta-credit svg, .cta-agency svg { width: 16px; height: 16px; }
+    .credit-pitch strong { color: var(--text); font-weight: 600; }
+    .credit-cta-row {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .credit-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 22px;
+      background: var(--text);
+      color: #0a0a0f;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 0.05s, box-shadow 0.2s;
+      letter-spacing: -0.01em;
+    }
+    .credit-cta svg {
+      width: 16px; height: 16px;
+      transition: transform 0.2s;
+    }
+    .credit-cta:hover {
+      box-shadow: 0 12px 32px rgba(245, 245, 247, 0.22);
+    }
+    .credit-cta:hover svg { transform: translateX(3px); }
+    .credit-byline {
+      padding-top: 18px;
+      border-top: 1px solid var(--border-soft);
+      font-size: 12px;
+      color: var(--muted);
+      letter-spacing: 0.01em;
+    }
+    .credit-byline a {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.15s;
+    }
+    .credit-byline a:hover { color: var(--violet); }
+    .credit-byline .sep {
+      display: inline-block;
+      margin: 0 8px;
+      color: var(--muted-2);
+    }
 
     /* === FAQ === */
     .faq-list { display: flex; flex-direction: column; gap: 8px; text-align: left; }
@@ -651,6 +709,8 @@
     <symbol id="i-share-ios" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></symbol>
     <symbol id="i-plus-square" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8"/><path d="M8 12h8"/></symbol>
     <symbol id="i-paste" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="4" width="12" height="14" rx="2"/><path d="M16 4V3a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v1"/><path d="M16 18v2a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h3"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 5 19 12 13 19"/></symbol>
     <symbol id="i-share" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></symbol>
     <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="3" y1="12" x2="21" y2="12"/><path d="M12 3a13 13 0 0 1 0 18M12 3a13 13 0 0 0 0 18"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
@@ -691,7 +751,7 @@
   <header class="topbar">
     <a class="brand-link" href="#top">
       <svg class="logo" viewBox="0 0 100 100"><use href="#muse-sparkle"/></svg>
-      <span class="brand">muse</span>
+      <span class="brand">muse<span class="brand-dot">.</span></span>
     </a>
     <div class="topnav">
       <button class="pill icon-only" id="lang-btn" type="button" aria-label="Idioma">
@@ -800,26 +860,26 @@
   </section>
 
   <section class="credit-card" id="credit">
-    <svg class="credit-sparkle left" viewBox="0 0 100 100"><use href="#muse-sparkle"/></svg>
-    <svg class="credit-sparkle right" viewBox="0 0 100 100"><use href="#muse-sparkle"/></svg>
-    <p class="credit-eyebrow" data-i18n="credit_eyebrow">Diseño · UI · Marca</p>
-    <h2 class="credit-name">
-      <a href="https://www.instagram.com/dariomz" target="_blank" rel="noopener">x @dariomz</a>
+    <div class="credit-mark">
+      <svg class="credit-mark-icon" viewBox="0 0 100 100"><use href="#muse-sparkle"/></svg>
+      <span class="credit-mark-label" data-i18n="credit_eyebrow">Una app de</span>
+    </div>
+    <h2 class="credit-agency">
+      <span class="credit-agency-name">Big Bang Brand</span>
+      <span class="credit-agency-tag" data-i18n="credit_agency_tag">Agencia IA</span>
     </h2>
-    <p class="credit-tagline">
-      <span data-i18n="credit_book">Pautame en</span>
-      <strong>Big Bang Brand</strong>
-      <span class="agency-tag" data-i18n="credit_agency_tag">Agencia IA</span>
-    </p>
-    <div class="credit-buttons">
-      <a class="cta-credit" href="https://www.instagram.com/dariomz" target="_blank" rel="noopener">
-        <svg><use href="#p-instagram"/></svg>
-        <span data-i18n="credit_btn_work">Ver mi trabajo</span>
+    <p class="credit-pitch" data-i18n="credit_pitch">Construimos apps con IA para marcas y creadores. Muse es una de las nuestras. ¿Tienes una idea?</p>
+    <div class="credit-cta-row">
+      <a class="credit-cta" href="https://www.instagram.com/bigbangbrand" target="_blank" rel="noopener">
+        <span data-i18n="credit_cta">Trabajemos</span>
+        <svg><use href="#i-arrow-right"/></svg>
       </a>
-      <a class="cta-agency" href="https://www.instagram.com/bigbangbrand" target="_blank" rel="noopener">
-        <svg><use href="#i-zap"/></svg>
-        <span data-i18n="credit_btn_agency">Conocer Big Bang Brand</span>
-      </a>
+    </div>
+    <div class="credit-byline">
+      <span data-i18n="credit_byline_made">Hecho por</span>
+      <a href="https://www.instagram.com/dariomz" target="_blank" rel="noopener">@dariomz</a>
+      <span class="sep">·</span>
+      <span data-i18n="credit_byline_role">founder</span>
     </div>
   </section>
 
@@ -937,11 +997,14 @@
       f5_d: "No guardamos nada. Tu archivo se borra del servidor al instante.",
       f6_t: "Sin login, sin cuenta",
       f6_d: "Ni email ni signup. Pega y descarga. Punto.",
-      credit_eyebrow: "Diseño · UI · Marca",
-      credit_book: "Pautame en",
+      credit_eyebrow: "Una app de",
       credit_agency_tag: "Agencia IA",
-      credit_btn_work: "Ver mi trabajo",
-      credit_btn_agency: "Conocer Big Bang Brand",
+      credit_pitch: "Construimos apps con IA para marcas y creadores. Muse es una de las nuestras. ¿Tienes una idea?",
+      credit_cta: "Trabajemos",
+      credit_byline_made: "Hecho por",
+      credit_byline_role: "founder",
+      btn_clear: "Borrar",
+      btn_paste: "Pegar",
       faq_eyebrow: "FAQ",
       faq_title: "Preguntas frecuentes.",
       q1: "¿Es gratis de verdad?",
@@ -1027,11 +1090,14 @@
       f5_d: "We keep nothing. Your file is wiped from the server instantly.",
       f6_t: "No login, no account",
       f6_d: "No email, no signup. Paste and download. Done.",
-      credit_eyebrow: "Design · UI · Brand",
-      credit_book: "Hire me at",
+      credit_eyebrow: "An app by",
       credit_agency_tag: "AI Agency",
-      credit_btn_work: "See my work",
-      credit_btn_agency: "Visit Big Bang Brand",
+      credit_pitch: "We build AI apps for brands and creators. Muse is one of ours. Got an idea?",
+      credit_cta: "Let's work together",
+      credit_byline_made: "Made by",
+      credit_byline_role: "founder",
+      btn_clear: "Clear",
+      btn_paste: "Paste",
       faq_eyebrow: "FAQ",
       faq_title: "Frequently asked questions.",
       q1: "Is it really free?",
@@ -1157,7 +1223,7 @@
       inputWrap.appendChild(urlEl);
       const newPaste = pasteBtn.cloneNode(true);
       newPaste.id = 'paste-btn';
-      newPaste.addEventListener('click', handlePaste);
+      newPaste.addEventListener('click', handleInputBtn);
       inputWrap.appendChild(newPaste);
     }
     inputWrap.style.minWidth = '100%';
@@ -1177,8 +1243,9 @@
   bulkToggle.addEventListener('click', () => {
     bulkMode = !bulkMode;
     rebuildInput();
-    urlEl.addEventListener('input', updateBulkUI);
+    urlEl.addEventListener('input', () => { updateBulkUI(); refreshInputBtn(); });
     updateBulkUI();
+    refreshInputBtn();
     urlEl.focus();
   });
 
@@ -1187,7 +1254,17 @@
     return text.split(/[\n\r]+/).map((s) => s.trim()).filter((s) => /^https?:\/\//i.test(s));
   }
 
-  // ============= Paste from clipboard =============
+  // ============= Paste / Clear (smart button) =============
+  function refreshInputBtn() {
+    const btnEl = document.getElementById('paste-btn');
+    if (!btnEl) return;
+    const hasText = !!(urlEl?.value || '').trim();
+    btnEl.dataset.action = hasText ? 'clear' : 'paste';
+    btnEl.setAttribute('aria-label', hasText ? t('btn_clear') : t('btn_paste'));
+    btnEl.title = hasText ? t('btn_clear') : t('btn_paste');
+    btnEl.innerHTML = `<svg><use href="#${hasText ? 'i-x' : 'i-paste'}"/></svg>`;
+  }
+
   async function handlePaste() {
     if (!navigator.clipboard?.readText) {
       showToast(t('paste_invalid'));
@@ -1201,11 +1278,29 @@
       urlEl.focus();
       showToast(t('pasted'));
       updateBulkUI();
+      refreshInputBtn();
     } catch (e) {
       showToast(t('paste_invalid'));
     }
   }
-  pasteBtn.addEventListener('click', handlePaste);
+
+  function handleClear() {
+    urlEl.value = '';
+    urlEl.focus();
+    refreshInputBtn();
+    updateBulkUI();
+    if (status.classList.contains('err')) {
+      status.className = 'status';
+      status.textContent = '';
+    }
+  }
+
+  function handleInputBtn() {
+    const action = document.getElementById('paste-btn')?.dataset.action;
+    if (action === 'clear') handleClear();
+    else handlePaste();
+  }
+  pasteBtn.addEventListener('click', handleInputBtn);
 
   // ============= Share =============
   document.getElementById('share-btn').addEventListener('click', async () => {
@@ -1413,8 +1508,9 @@
 
   // ============= Init =============
   applyI18n();
-  urlEl.addEventListener('input', updateBulkUI);
+  urlEl.addEventListener('input', () => { updateBulkUI(); refreshInputBtn(); });
   updateBulkUI();
+  refreshInputBtn();
   fetchStats();
 
   // Auto-paste on focus (best-effort)
@@ -1426,6 +1522,7 @@
         urlEl.value = text;
         showToast(t('pasted'));
         updateBulkUI();
+        refreshInputBtn();
       }
     } catch (e) {}
   });

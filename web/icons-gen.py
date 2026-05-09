@@ -143,6 +143,9 @@ def make_og_image():
     small_font = find_font(24)
 
     draw.text((80, H / 2 - 130), "muse", font=title_font, fill=(245, 245, 247))
+    # Period in amber after "muse"
+    muse_w = title_font.getbbox("muse")[2] - title_font.getbbox("muse")[0]
+    draw.text((80 + muse_w - 8, H / 2 - 130), ".", font=title_font, fill=AMBER)
     draw.text((80, H / 2 + 25), "Guarda lo que te inspira.", font=sub_font, fill=PINK)
     draw.text(
         (80, H / 2 + 80),
