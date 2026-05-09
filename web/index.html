@@ -719,22 +719,32 @@
       background: linear-gradient(90deg, transparent, rgba(167, 139, 250, 0.6), rgba(244, 114, 182, 0.5), rgba(251, 191, 36, 0.6), transparent);
     }
 
-    /* Desktop: 2-column showcase */
+    /* Desktop: 2-column showcase + full-width centered byline */
     @media (min-width: 760px) {
       .credit-card {
         display: grid;
         grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-        gap: 48px;
+        grid-template-areas:
+          "content visual"
+          "byline  byline";
+        column-gap: 48px;
+        row-gap: 4px;
         align-items: center;
         text-align: left;
-        padding: 56px 56px;
+        padding: 56px 56px 32px;
       }
-      .credit-content { min-width: 0; }
+      .credit-content { min-width: 0; grid-area: content; }
+      .credit-visual.desktop-only { grid-area: visual; }
+      .credit-byline {
+        grid-area: byline;
+        text-align: center;
+        padding-top: 28px;
+        margin-top: 16px;
+      }
       .credit-mark { margin-bottom: 22px; }
       .credit-agency { justify-content: flex-start; }
       .credit-pitch { margin: 0 0 28px; max-width: none; font-size: 17px; }
       .credit-cta-row { justify-content: flex-start; }
-      .credit-byline { text-align: left; }
     }
 
     .credit-mark {
@@ -868,17 +878,23 @@
       color: var(--muted-2);
     }
 
-    /* === Visual constellation (desktop only) === */
+    /* === Visual constellation === */
     .credit-visual {
-      display: none;
       position: relative;
       width: 100%;
       aspect-ratio: 1 / 1;
       max-width: 320px;
       margin: 0 auto;
     }
+    .credit-visual.mobile-only {
+      display: block;
+      max-width: 220px;
+      margin: 22px auto 26px;
+    }
+    .credit-visual.desktop-only { display: none; }
     @media (min-width: 760px) {
-      .credit-visual { display: block; }
+      .credit-visual.mobile-only { display: none; }
+      .credit-visual.desktop-only { display: block; }
     }
     .constellation {
       position: absolute;
@@ -1417,6 +1433,16 @@
         <span class="credit-agency-name">Big Bang Brand</span>
         <span class="credit-agency-tag" data-i18n="credit_agency_tag">Agencia IA</span>
       </h2>
+      <div class="credit-visual mobile-only" aria-hidden="true">
+        <div class="constellation-ring ring-1"></div>
+        <div class="constellation-ring ring-2"></div>
+        <div class="constellation">
+          <svg class="constellation-main" viewBox="0 0 100 100"><use href="#muse-sparkle"/></svg>
+        </div>
+        <div class="constellation-orbit orbit-1"><svg class="small-spark" viewBox="0 0 100 100"><use href="#muse-sparkle"/></svg></div>
+        <div class="constellation-orbit orbit-2"><svg class="small-spark" viewBox="0 0 100 100"><use href="#muse-sparkle"/></svg></div>
+        <div class="constellation-orbit orbit-3"><svg class="small-spark" viewBox="0 0 100 100"><use href="#muse-sparkle"/></svg></div>
+      </div>
       <p class="credit-pitch" data-i18n="credit_pitch">Construimos apps con IA para marcas y creadores. Muse es solo el comienzo. ¿Tienes una idea? Hagámosla realidad.</p>
       <div class="credit-cta-row">
         <a class="credit-cta" href="https://www.bigbangbrand.co" target="_blank" rel="noopener">
@@ -1428,14 +1454,8 @@
           <span data-i18n="credit_cta_ig">Ver portfolio</span>
         </a>
       </div>
-      <div class="credit-byline">
-        <span data-i18n="credit_byline_made">Hecho por</span>
-        <a href="https://www.instagram.com/dariomz" target="_blank" rel="noopener">@dariomz</a>
-        <span class="sep">·</span>
-        <span data-i18n="credit_byline_role">CEO / Desarrollador</span>
-      </div>
     </div>
-    <div class="credit-visual" aria-hidden="true">
+    <div class="credit-visual desktop-only" aria-hidden="true">
       <div class="constellation-ring ring-1"></div>
       <div class="constellation-ring ring-2"></div>
       <div class="constellation">
@@ -1444,6 +1464,12 @@
       <div class="constellation-orbit orbit-1"><svg class="small-spark" viewBox="0 0 100 100"><use href="#muse-sparkle"/></svg></div>
       <div class="constellation-orbit orbit-2"><svg class="small-spark" viewBox="0 0 100 100"><use href="#muse-sparkle"/></svg></div>
       <div class="constellation-orbit orbit-3"><svg class="small-spark" viewBox="0 0 100 100"><use href="#muse-sparkle"/></svg></div>
+    </div>
+    <div class="credit-byline">
+      <span data-i18n="credit_byline_made">Hecho por</span>
+      <a href="https://www.instagram.com/dariomz" target="_blank" rel="noopener">@dariomz</a>
+      <span class="sep">·</span>
+      <span data-i18n="credit_byline_role">CEO / Desarrollador</span>
     </div>
   </section>
 
