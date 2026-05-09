@@ -7,7 +7,7 @@ const KEY = 'downloads';
 
 // Passive growth — counter ticks up over time so it feels alive.
 const BASELINE_ISO = '2026-05-09T00:00:00Z';
-const PER_HOUR = 7;
+const PER_HOUR = 3;
 
 function inflate(real) {
   const baseline = Date.parse(BASELINE_ISO);
