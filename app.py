@@ -25,7 +25,7 @@ CORS(
     expose_headers=["Content-Disposition"],
 )
 
-MEDIA_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov", ".heic", ".m4a", ".gif"}
+MEDIA_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov", ".heic", ".m4a", ".mp3", ".gif"}
 NETSCAPE_HEADER = "# Netscape HTTP Cookie File\n# Auto-generated.\n\n"
 
 PLATFORM_RULES = [
@@ -132,6 +132,12 @@ YT_USER_AGENT = (
     "Version/17.5 Mobile/15E148 Safari/604.1"
 )
 
+try:
+    import imageio_ffmpeg
+    FFMPEG_PATH = imageio_ffmpeg.get_ffmpeg_exe()
+except Exception:
+    FFMPEG_PATH = None
+
 
 def write_yt_cookies_file(path: str) -> bool:
     raw = os.environ.get("YT_COOKIES", "").strip()
@@ -146,7 +152,7 @@ def write_yt_cookies_file(path: str) -> bool:
     return True
 
 
-def download_via_ytdlp(url: str, target_dir: str) -> tuple[int, str]:
+def download_via_ytdlp(url: str, target_dir: str, audio_only: bool = False) -> tuple[int, str]:
     out_template = os.path.join(target_dir, "%(autonumber)02d.%(ext)s")
     cookies_path = os.path.join(target_dir, "_yt_cookies.txt")
     has_yt_cookies = write_yt_cookies_file(cookies_path)
@@ -157,8 +163,6 @@ def download_via_ytdlp(url: str, target_dir: str) -> tuple[int, str]:
         "--autonumber-start", "1",
         "--no-warnings",
         "--no-progress",
-        "-f", "bestvideo*+bestaudio/best",
-        "--merge-output-format", "mp4",
         "--write-info-json",
         "--no-write-thumbnail",
         "--no-playlist",
@@ -167,6 +171,22 @@ def download_via_ytdlp(url: str, target_dir: str) -> tuple[int, str]:
         "--user-agent", YT_USER_AGENT,
         "--add-header", "Accept-Language:es-ES,es;q=0.9,en;q=0.8",
     ]
+    if FFMPEG_PATH:
+        cmd.extend(["--ffmpeg-location", FFMPEG_PATH])
+
+    if audio_only:
+        cmd.extend([
+            "-f", "bestaudio/best",
+            "-x",
+            "--audio-format", "mp3",
+            "--audio-quality", "0",
+        ])
+    else:
+        cmd.extend([
+            "-f", "bestvideo*+bestaudio/best",
+            "--merge-output-format", "mp4",
+        ])
+
     if has_yt_cookies:
         cmd.extend(["--cookies", cookies_path])
     cmd.append(url)
@@ -314,7 +334,7 @@ def index():
     return render_template("index.html")
 
 
-def _process_one(url: str, workdir: str) -> tuple[bool, str, str | None]:
+def _process_one(url: str, workdir: str, audio_only: bool = False) -> tuple[bool, str, str | None]:
     """Download one URL into workdir. Returns (success, message, basename_used)."""
     if not url or not re.match(r"^https?://", url):
         return False, "URL inválida", None
@@ -326,7 +346,10 @@ def _process_one(url: str, workdir: str) -> tuple[bool, str, str | None]:
     fallback_id = extract_short_id(url)
 
     try:
-        if primary_tool == "yt-dlp":
+        # Audio-only (MP3) ALWAYS goes through yt-dlp regardless of platform default.
+        if audio_only:
+            rc, output = download_via_ytdlp(url, workdir, audio_only=True)
+        elif primary_tool == "yt-dlp":
             rc, output = download_via_ytdlp(url, workdir)
             if rc != 0 or not collect_media(workdir):
                 rc2, out2 = download_via_gallery_dl(url, workdir)
@@ -364,6 +387,8 @@ def download():
     else:
         urls = []
 
+    audio_only = str(data.get("format") or "").lower() in ("mp3", "audio")
+
     if not urls:
         return jsonify({"error": "URL no válida. Pega un link completo (con https://)."}), 400
 
@@ -371,11 +396,11 @@ def download():
         return jsonify({"error": "Máximo 20 links por descarga."}), 413
 
     if len(urls) == 1:
-        return _single_download(urls[0])
-    return _bulk_download(urls)
+        return _single_download(urls[0], audio_only=audio_only)
+    return _bulk_download(urls, audio_only=audio_only)
 
 
-def _single_download(url: str):
+def _single_download(url: str, audio_only: bool = False):
     if not re.match(r"^https?://", url):
         return jsonify({"error": "URL no válida. Pega un link completo (con https://)."}), 400
 
@@ -385,7 +410,7 @@ def _single_download(url: str):
 
     workdir = tempfile.mkdtemp(prefix="muse_")
     try:
-        ok, msg, basename = _process_one(url, workdir)
+        ok, msg, basename = _process_one(url, workdir, audio_only=audio_only)
         if not ok:
             platform, _ = detect_platform(url)
             err, code = map_error_response(msg, platform)
@@ -416,7 +441,7 @@ def _single_download(url: str):
         shutil.rmtree(workdir, ignore_errors=True)
 
 
-def _bulk_download(urls: list[str]):
+def _bulk_download(urls: list[str], audio_only: bool = False):
     bulkdir = tempfile.mkdtemp(prefix="muse_bulk_")
     failures = []
     successes = 0
@@ -424,7 +449,7 @@ def _bulk_download(urls: list[str]):
         for idx, url in enumerate(urls, start=1):
             sub = os.path.join(bulkdir, f"item_{idx:02d}")
             os.makedirs(sub, exist_ok=True)
-            ok, msg, basename = _process_one(url, sub)
+            ok, msg, basename = _process_one(url, sub, audio_only=audio_only)
             if not ok:
                 failures.append({"url": url, "error": msg})
                 shutil.rmtree(sub, ignore_errors=True)
