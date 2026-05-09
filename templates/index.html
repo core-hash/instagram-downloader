@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Descargar Instagram → ZIP</title>
+  <style>
+    :root {
+      --bg: #0b0b10;
+      --panel: #15151d;
+      --border: #2a2a36;
+      --text: #f4f4f5;
+      --muted: #9aa0a6;
+      --accent: #e1306c;
+      --accent2: #f77737;
+      --ok: #22c55e;
+      --err: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: radial-gradient(1200px 600px at 50% -10%, #2a0f24 0%, var(--bg) 60%);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+    }
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 64px 20px;
+    }
+    h1 {
+      font-size: 32px;
+      margin: 0 0 8px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    p.lead { color: var(--muted); margin: 0 0 28px; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+    }
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+    .row { display: flex; gap: 10px; }
+    input[type="url"] {
+      flex: 1;
+      background: #0e0e15;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color .15s;
+    }
+    input[type="url"]:focus { border-color: var(--accent); }
+    button {
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      color: white;
+      border: 0;
+      padding: 14px 22px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: transform .05s, opacity .15s;
+    }
+    button:hover { opacity: .92; }
+    button:active { transform: translateY(1px); }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    .status {
+      margin-top: 16px;
+      font-size: 14px;
+      min-height: 20px;
+    }
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--err); }
+    .hint {
+      margin-top: 22px;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .hint code {
+      background: #0e0e15;
+      padding: 2px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid #444;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      vertical-align: -2px;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Descargar Instagram → ZIP</h1>
+    <p class="lead">Pega un link de post, carrusel, reel o IGTV. Te devuelvo un ZIP con todo en máxima calidad.</p>
+
+    <div class="card">
+      <form id="form">
+        <label for="url">URL de Instagram</label>
+        <div class="row">
+          <input id="url" name="url" type="url" required
+                 placeholder="https://www.instagram.com/p/CxXxXxXxXxX/">
+          <button id="btn" type="submit">Descargar ZIP</button>
+        </div>
+        <div id="status" class="status"></div>
+      </form>
+
+      <div class="hint">
+        Soporta <code>/p/</code>, <code>/reel/</code>, <code>/reels/</code> y <code>/tv/</code>.<br>
+        Si la cuenta es privada o IG exige login, exporta credenciales antes de iniciar:
+        <code>export IG_USERNAME=tu_user IG_PASSWORD=tu_pass</code>.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('form');
+    const btn = document.getElementById('btn');
+    const status = document.getElementById('status');
+    const urlInput = document.getElementById('url');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = urlInput.value.trim();
+      if (!url) return;
+
+      btn.disabled = true;
+      status.className = 'status';
+      status.innerHTML = '<span class="spinner"></span>Descargando contenido en máxima calidad…';
+
+      try {
+        const res = await fetch('/api/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+
+        if (!res.ok) {
+          let msg = `Error ${res.status}`;
+          try {
+            const j = await res.json();
+            if (j.error) msg = j.error;
+          } catch {}
+          status.className = 'status err';
+          status.textContent = msg;
+          return;
+        }
+
+        const blob = await res.blob();
+        const cd = res.headers.get('Content-Disposition') || '';
+        let filename = 'instagram.zip';
+        const m = cd.match(/filename="?([^"]+)"?/);
+        if (m) filename = m[1];
+
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(a.href);
+
+        status.className = 'status ok';
+        status.textContent = `Listo: ${filename}`;
+      } catch (err) {
+        status.className = 'status err';
+        status.textContent = `Error de red: ${err.message}`;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

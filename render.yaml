@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: instagram-downloader
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --timeout 120 --workers 2
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.4
+      - key: ALLOWED_ORIGINS
+        value: https://instagram-downloader-687.pages.dev,http://localhost:5005
+      - key: IG_USERNAME
+        sync: false
+      - key: IG_PASSWORD
+        sync: false
