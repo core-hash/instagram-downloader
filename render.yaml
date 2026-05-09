@@ -9,8 +9,6 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.4
-      - key: ALLOWED_ORIGINS
-        value: https://instagram-downloader-687.pages.dev,https://muse-co.pages.dev,https://mimuse.app,https://www.mimuse.app,http://localhost:5005
       - key: IG_USERNAME
         sync: false
       - key: IG_PASSWORD

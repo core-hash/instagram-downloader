@@ -15,14 +15,15 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 
-ALLOWED_ORIGINS = os.environ.get(
-    "ALLOWED_ORIGINS",
-    "http://localhost:5005,http://127.0.0.1:5005,https://muse-co.pages.dev,https://instagram-downloader-687.pages.dev,https://mimuse.app,https://www.mimuse.app",
-).split(",")
+_origins_env = os.environ.get("ALLOWED_ORIGINS", "")
+# Public API — accept any origin by default.
+# Override via ALLOWED_ORIGINS env var (comma-separated) to restrict.
+ALLOWED_ORIGINS = [o.strip() for o in _origins_env.split(",") if o.strip()] or "*"
 CORS(
     app,
     resources={r"/api/*": {"origins": ALLOWED_ORIGINS}},
     expose_headers=["Content-Disposition"],
+    supports_credentials=False,
 )
 
 MEDIA_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov", ".heic", ".m4a", ".mp3", ".gif"}
