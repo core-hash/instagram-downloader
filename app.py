@@ -659,7 +659,14 @@ def probe():
                 pass
 
     if proc.returncode != 0 or not proc.stdout.strip():
-        return jsonify({"platform": platform, "max_height": None, "error": "probe_failed"}), 200
+        return jsonify({
+            "platform": platform,
+            "max_height": None,
+            "error": "probe_failed",
+            "rc": proc.returncode,
+            "stderr": (proc.stderr or "")[-800:],
+            "stdout_head": (proc.stdout or "")[:200],
+        }), 200
 
     try:
         info = json.loads(proc.stdout)
