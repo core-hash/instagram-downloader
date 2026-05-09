@@ -1,5 +1,6 @@
 import io
 import json
+import mimetypes
 import os
 import re
 import shutil
@@ -20,7 +21,6 @@ ALLOWED_ORIGINS = os.environ.get(
 ).split(",")
 CORS(app, resources={r"/api/*": {"origins": ALLOWED_ORIGINS}})
 
-SHORTCODE_RE = re.compile(r"instagram\.com/(?:[^/]+/)?(p|reel|reels|tv)/([A-Za-z0-9_-]+)")
 MEDIA_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov", ".heic", ".m4a"}
 NETSCAPE_HEADER = "# Netscape HTTP Cookie File\n# Auto-generated.\n\n"
 
@@ -28,8 +28,13 @@ NETSCAPE_HEADER = "# Netscape HTTP Cookie File\n# Auto-generated.\n\n"
 def extract_shortcode(url: str) -> str | None:
     if not url:
         return None
-    match = SHORTCODE_RE.search(url)
-    return match.group(2) if match else None
+    m = re.search(r"instagram\.com/(?:[^/]+/)?(?:p|reel|reels|tv)/([A-Za-z0-9_-]+)", url)
+    if m:
+        return m.group(1)
+    m = re.search(r"instagram\.com/stories/(?:highlights/)?[^/]+/(\d+)", url)
+    if m:
+        return m.group(1)
+    return None
 
 
 def write_cookies_file(path: str) -> bool:
@@ -69,6 +74,7 @@ def download_via_gallery_dl(url: str, target_dir: str) -> tuple[int, str]:
         "-D", target_dir,
         "--filename", "{num:>02}.{extension}",
         "--write-metadata",
+        "--write-info-json",
         "--no-mtime",
     ]
     if has_cookies:
@@ -101,39 +107,60 @@ def slugify_caption(caption: str, max_words: int = 6, max_chars: int = 50) -> st
     return slug[:max_chars].strip("-_")
 
 
-def build_zip_filename(target_dir: str, shortcode: str) -> str:
-    for name in sorted(os.listdir(target_dir)):
-        if not name.endswith(".json") or name.startswith("_"):
+def find_metadata(target_dir: str) -> dict:
+    candidates = []
+    for name in os.listdir(target_dir):
+        if name.startswith("_") or not name.endswith(".json"):
             continue
+        path = os.path.join(target_dir, name)
+        if name == "info.json":
+            candidates.insert(0, path)
+        else:
+            candidates.append(path)
+
+    for path in candidates:
         try:
-            with open(os.path.join(target_dir, name), "r", encoding="utf-8") as f:
-                meta = json.load(f)
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
         except (OSError, json.JSONDecodeError):
             continue
-        username = meta.get("username") if isinstance(meta.get("username"), str) else ""
-        if not username:
-            owner = meta.get("owner") or meta.get("user") or {}
+        if isinstance(data, dict):
+            return data
+    return {}
+
+
+def derive_basename(meta: dict, shortcode: str) -> str:
+    username = meta.get("username") if isinstance(meta.get("username"), str) else ""
+    if not username:
+        for key in ("owner", "user", "author"):
+            owner = meta.get(key)
             if isinstance(owner, dict):
-                username = owner.get("username", "")
-        date_raw = meta.get("date", "")
-        date_str = date_raw[:10] if isinstance(date_raw, str) else ""
-        caption = meta.get("description") or meta.get("caption") or ""
-        caption_slug = slugify_caption(caption) or shortcode
-        parts = [safe_chunk(p) for p in (username, date_str, caption_slug) if p]
-        if parts:
-            return "_".join(parts) + ".zip"
-    return f"instagram_{shortcode}.zip"
+                username = owner.get("username") or owner.get("name") or ""
+                if username:
+                    break
+            elif isinstance(owner, str):
+                username = owner
+                break
+
+    date_raw = meta.get("date") or meta.get("post_date") or meta.get("created_at") or ""
+    date_str = date_raw[:10] if isinstance(date_raw, str) else ""
+
+    caption = meta.get("description") or meta.get("caption") or meta.get("title") or ""
+    caption_slug = slugify_caption(caption) or shortcode
+
+    parts = [safe_chunk(p) for p in (username, date_str, caption_slug) if p]
+    return "_".join(parts) if parts else f"instagram_{shortcode}"
 
 
 def collect_media(target_dir: str) -> list[str]:
-    return [
+    return sorted(
         f for f in os.listdir(target_dir)
         if not f.startswith("_") and os.path.splitext(f)[1].lower() in MEDIA_EXTS
-    ]
+    )
 
 
 def renumber_slides(target_dir: str) -> None:
-    files = sorted(collect_media(target_dir))
+    files = collect_media(target_dir)
     if not files:
         return
     width = max(2, len(str(len(files))))
@@ -162,6 +189,13 @@ def zip_directory(source_dir: str) -> io.BytesIO:
     return buffer
 
 
+def file_to_buffer(path: str) -> io.BytesIO:
+    with open(path, "rb") as f:
+        buf = io.BytesIO(f.read())
+    buf.seek(0)
+    return buf
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -173,7 +207,7 @@ def download():
     url = (data.get("url") or "").strip()
     shortcode = extract_shortcode(url)
     if not shortcode:
-        return jsonify({"error": "URL no válida. Usa una URL de post, reel o IGTV de Instagram."}), 400
+        return jsonify({"error": "URL no válida. Usa una URL de post, reel, IGTV o story de Instagram."}), 400
 
     workdir = tempfile.mkdtemp(prefix="ig_")
     try:
@@ -198,14 +232,28 @@ def download():
         if not media:
             return jsonify({"error": "No se descargó ningún archivo."}), 500
 
-        zip_name = build_zip_filename(workdir, shortcode)
+        meta = find_metadata(workdir)
+        basename = derive_basename(meta, shortcode)
+
+        if len(media) == 1:
+            single = media[0]
+            ext = os.path.splitext(single)[1].lower()
+            mime, _ = mimetypes.guess_type(single)
+            buf = file_to_buffer(os.path.join(workdir, single))
+            return send_file(
+                buf,
+                mimetype=mime or "application/octet-stream",
+                as_attachment=True,
+                download_name=f"{basename}{ext}",
+            )
+
         renumber_slides(workdir)
         zip_buffer = zip_directory(workdir)
         return send_file(
             zip_buffer,
             mimetype="application/zip",
             as_attachment=True,
-            download_name=zip_name,
+            download_name=f"{basename}.zip",
         )
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
