@@ -1829,6 +1829,8 @@
   updateBulkUI();
   refreshInputBtn();
   fetchStats();
+  // Refresh stats every 60s so the passive counter visibly ticks up while the user reads.
+  setInterval(fetchStats, 60000);
 
   // Auto-paste on focus (best-effort)
   urlEl.addEventListener('focus', async () => {
