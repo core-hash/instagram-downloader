@@ -411,9 +411,11 @@ def map_error_response(output: str, platform: str | None) -> tuple[dict, int]:
     if "404" in output or "not found" in low or "does not exist" in low or "no such" in low:
         return {"error": "Publicación no encontrada o eliminada."}, 404
     if "no video formats" in low or "unable to extract" in low:
+        if platform == "youtube":
+            return {"error": "YouTube bloqueó este video desde la IP del servidor. Para descargar de YouTube necesitas configurar YT_COOKIES en Render con cookies de tu sesión (cuenta secundaria)."}, 401
         return {"error": "No se pudo extraer media de este link. Verifica que sea público y soportado."}, 422
     if "sign in" in low or "confirm you" in low or "not a bot" in low:
-        return {"error": "YouTube exige autenticación para esta IP. Considera configurar YT_COOKIES en el servidor con cookies de YouTube."}, 401
+        return {"error": "YouTube exige autenticación. Configura YT_COOKIES en Render con cookies de YouTube (instala 'Get cookies.txt LOCALLY' → exporta youtube.com → pégalo en Render → Environment → YT_COOKIES)."}, 401
     if "status code 0" in low or "video not available" in low:
         return {"error": "Video no disponible (puede estar removido, ser privado o tener restricciones de región)."}, 404
     return {"error": f"Error al descargar: {output[:400]}"}, 500
@@ -659,14 +661,7 @@ def probe():
                 pass
 
     if proc.returncode != 0 or not proc.stdout.strip():
-        return jsonify({
-            "platform": platform,
-            "max_height": None,
-            "error": "probe_failed",
-            "rc": proc.returncode,
-            "stderr": (proc.stderr or "")[-800:],
-            "stdout_head": (proc.stdout or "")[:200],
-        }), 200
+        return jsonify({"platform": platform, "max_height": None, "error": "probe_failed"}), 200
 
     try:
         info = json.loads(proc.stdout)
