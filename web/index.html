@@ -92,26 +92,90 @@
       pointer-events: none;
     }
 
-    /* === Top install banner === */
+    /* === Apple Smart App Banner-style PWA install bar === */
     .install-bar {
       display: none;
-      position: sticky; top: 0; left: 0; right: 0; z-index: 50;
-      background: linear-gradient(135deg, rgba(167,139,250,0.18), rgba(244,114,182,0.14), rgba(251,191,36,0.18));
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(167,139,250,0.25);
-      padding: 10px 16px;
-      animation: slide-down 0.4s ease-out;
+      position: sticky;
+      top: 8px;
+      left: 0; right: 0;
+      z-index: 50;
+      margin: 8px auto 0;
+      max-width: 480px;
+      width: calc(100% - 16px);
+      padding: 10px 14px 10px 12px;
+      background: rgba(20, 20, 28, 0.78);
+      backdrop-filter: saturate(180%) blur(30px);
+      -webkit-backdrop-filter: saturate(180%) blur(30px);
+      border: 0.5px solid rgba(255, 255, 255, 0.10);
+      border-radius: 18px;
+      box-shadow:
+        0 16px 40px rgba(0, 0, 0, 0.50),
+        0 0 0 0.5px rgba(255, 255, 255, 0.04) inset,
+        0 1px 0 rgba(255, 255, 255, 0.08) inset;
+      align-items: center;
+      gap: 12px;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text", system-ui, sans-serif;
+      animation: ib-pop 0.55s cubic-bezier(.34,1.56,.64,1);
     }
-    .install-bar.show { display: flex; align-items: center; justify-content: center; gap: 12px; }
-    @keyframes slide-down {
-      from { transform: translateY(-100%); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+    .install-bar.show { display: flex; }
+    @keyframes ib-pop {
+      0%   { transform: translateY(-32px) scale(0.92); opacity: 0; }
+      100% { transform: translateY(0) scale(1); opacity: 1; }
     }
-    .install-bar .ib-icon { width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0; }
-    .install-bar .ib-text { flex: 0 1 auto; min-width: 0; font-size: 13px; font-weight: 600; line-height: 1.3; }
-    .install-bar .ib-text .ib-sub { display: block; font-size: 11px; font-weight: 500; color: var(--muted); }
-    .install-bar .ib-btn { background: var(--text); color: #0a0a0f; border: 0; padding: 8px 14px; border-radius: 999px; font-weight: 700; font-size: 12px; cursor: pointer; flex-shrink: 0; }
-    .install-bar .ib-close { background: transparent; border: 0; color: var(--muted); cursor: pointer; font-size: 22px; padding: 4px 8px; line-height: 1; flex-shrink: 0; }
+    .install-bar .ib-close {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      background: rgba(120, 120, 130, 0.32);
+      color: rgba(255, 255, 255, 0.85);
+      border: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; flex-shrink: 0;
+      padding: 0; line-height: 1;
+      transition: background 0.15s;
+    }
+    .install-bar .ib-close:hover { background: rgba(140, 140, 150, 0.45); }
+    .install-bar .ib-icon {
+      width: 50px; height: 50px;
+      border-radius: 12px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(244, 114, 182, 0.30), 0 0 0 0.5px rgba(255,255,255,0.10) inset;
+    }
+    .install-bar .ib-text {
+      flex: 1; min-width: 0;
+      line-height: 1.25;
+    }
+    .install-bar .ib-text strong {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      color: #f5f5f7;
+      display: block;
+    }
+    .install-bar .ib-text .ib-sub {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 400;
+      color: rgba(235, 235, 245, 0.55);
+      letter-spacing: -0.005em;
+      margin-top: 1px;
+    }
+    .install-bar .ib-btn {
+      background: var(--grad-h);
+      color: #0a0a0f;
+      border: 0;
+      padding: 9px 18px;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.005em;
+      cursor: pointer;
+      flex-shrink: 0;
+      font-family: inherit;
+      transition: transform 0.08s ease, box-shadow 0.2s;
+      box-shadow: 0 4px 14px rgba(167, 139, 250, 0.35);
+    }
+    .install-bar .ib-btn:active { transform: scale(0.96); }
 
     .wrap {
       max-width: 920px; width: 100%;
@@ -609,38 +673,115 @@
     .faq summary:hover { color: var(--violet); }
     .faq .ans { padding: 0 20px 18px; color: var(--muted); font-size: 14px; line-height: 1.6; }
 
-    /* === iOS install modal === */
+    /* === iOS bottom-sheet modal (Apple style) === */
     .ios-modal {
       position: fixed; inset: 0;
-      background: rgba(7,7,11,0.85);
-      backdrop-filter: blur(8px);
+      background: rgba(7,7,11,0.55);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       z-index: 200;
-      display: none; align-items: flex-end;
+      display: none; align-items: flex-end; justify-content: center;
+      padding: 0;
     }
-    .ios-modal.show { display: flex; }
+    .ios-modal.show { display: flex; animation: ios-fade-in 0.25s ease-out; }
+    @keyframes ios-fade-in { from { opacity: 0; } to { opacity: 1; } }
     .ios-modal-card {
-      background: var(--panel);
-      border-top: 1px solid var(--border);
-      border-radius: 22px 22px 0 0;
-      padding: 28px 24px 36px;
+      background: linear-gradient(180deg, rgba(28, 28, 36, 0.95) 0%, rgba(20, 20, 28, 0.98) 100%);
+      backdrop-filter: saturate(180%) blur(40px);
+      -webkit-backdrop-filter: saturate(180%) blur(40px);
+      border-top: 0.5px solid rgba(255, 255, 255, 0.10);
+      border-radius: 24px 24px 0 0;
+      padding: 14px 20px 28px;
       width: 100%;
-      animation: slide-up 0.3s ease-out;
+      max-width: 520px;
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text", system-ui, sans-serif;
+      animation: ios-sheet-up 0.45s cubic-bezier(.34,1.20,.64,1);
+      box-shadow: 0 -16px 40px rgba(0, 0, 0, 0.5);
+      max-height: 90vh;
+      overflow-y: auto;
+      padding-bottom: max(28px, env(safe-area-inset-bottom));
     }
-    @keyframes slide-up {
+    @keyframes ios-sheet-up {
       from { transform: translateY(100%); }
       to { transform: translateY(0); }
     }
-    .ios-modal h3 { margin: 0 0 12px; font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
-    .ios-modal ol { margin: 16px 0; padding-left: 18px; color: var(--muted); font-size: 14px; line-height: 1.7; }
-    .ios-modal ol b { color: var(--text); }
-    .ios-modal .ios-share-icon { display: inline-block; width: 20px; height: 20px; vertical-align: -5px; color: var(--violet); }
-    .btn-close {
-      background: var(--panel-2); color: var(--text);
-      border: 1px solid var(--border);
-      padding: 14px 22px; border-radius: 12px;
-      font-weight: 600; font-size: 14px;
-      cursor: pointer; font-family: inherit; width: 100%;
+    .ios-grabber {
+      width: 40px; height: 5px;
+      background: rgba(235, 235, 245, 0.30);
+      border-radius: 999px;
+      margin: 0 auto 18px;
     }
+    .ios-modal-header {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 22px;
+      padding: 0 4px;
+    }
+    .ios-modal-header .app-icon {
+      width: 56px; height: 56px;
+      border-radius: 13px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 14px rgba(244, 114, 182, 0.30), 0 0 0 0.5px rgba(255,255,255,0.08) inset;
+    }
+    .ios-modal-header .app-meta { flex: 1; min-width: 0; }
+    .ios-modal-header h3 {
+      margin: 0; font-size: 19px; font-weight: 700;
+      letter-spacing: -0.02em; color: var(--text);
+    }
+    .ios-modal-header .app-sub {
+      font-size: 13px; color: rgba(235, 235, 245, 0.55);
+      margin-top: 2px;
+      letter-spacing: -0.005em;
+    }
+    .ios-steps {
+      list-style: none; padding: 0; margin: 0 0 18px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .ios-step {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px;
+      background: rgba(120, 120, 128, 0.16);
+      border-radius: 14px;
+      border: 0.5px solid rgba(255, 255, 255, 0.05);
+    }
+    .ios-step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(235, 235, 245, 0.75);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700;
+      flex-shrink: 0;
+      letter-spacing: 0;
+    }
+    .ios-step-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: rgba(167, 139, 250, 0.18);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--violet);
+      flex-shrink: 0;
+    }
+    .ios-step-icon svg { width: 18px; height: 18px; }
+    .ios-step-text {
+      flex: 1; min-width: 0;
+      font-size: 14px; font-weight: 500;
+      color: var(--text);
+      letter-spacing: -0.005em;
+      line-height: 1.35;
+    }
+    .ios-step-text b { font-weight: 700; }
+    .btn-close {
+      background: rgba(120, 120, 128, 0.20);
+      color: var(--text);
+      border: 0;
+      padding: 14px 22px; border-radius: 14px;
+      font-weight: 600; font-size: 15px;
+      cursor: pointer; font-family: inherit; width: 100%;
+      letter-spacing: -0.005em;
+      transition: background 0.15s;
+    }
+    .btn-close:hover { background: rgba(120, 120, 128, 0.30); }
+    .btn-close:active { background: rgba(120, 120, 128, 0.40); }
 
     /* === Footer === */
     footer {
@@ -921,14 +1062,32 @@
 
 <div class="ios-modal" id="ios-modal" role="dialog" aria-modal="true">
   <div class="ios-modal-card">
-    <h3 data-i18n="ios_title">Instala Muse en tu iPhone</h3>
-    <p style="color: var(--muted); font-size: 14px; margin: 0;" data-i18n="ios_subtitle">Sigue estos pasos en Safari:</p>
-    <ol id="ios-steps">
-      <li><span data-i18n="ios_step1_a">Toca el botón</span> <b data-i18n="ios_share">Compartir</b> <svg class="ios-share-icon"><use href="#i-share-ios"/></svg> <span data-i18n="ios_step1_b">en la barra inferior.</span></li>
-      <li><span data-i18n="ios_step2_a">Desplaza hacia abajo y toca</span> <b data-i18n="ios_addhome">Añadir a pantalla de inicio</b> <svg class="ios-share-icon"><use href="#i-plus-square"/></svg>.</li>
-      <li><span data-i18n="ios_step3_a">Toca</span> <b data-i18n="ios_add">Añadir</b> <span data-i18n="ios_step3_b">arriba a la derecha.</span></li>
-    </ol>
-    <button class="btn-close" id="ios-close" data-i18n="ios_close">Entendido</button>
+    <div class="ios-grabber"></div>
+    <div class="ios-modal-header">
+      <img class="app-icon" src="/apple-touch-icon.png" alt="">
+      <div class="app-meta">
+        <h3 data-i18n="ios_title">Instala Muse</h3>
+        <div class="app-sub" data-i18n="ios_subtitle">Acceso directo desde tu pantalla de inicio</div>
+      </div>
+    </div>
+    <ul class="ios-steps">
+      <li class="ios-step">
+        <span class="ios-step-num">1</span>
+        <span class="ios-step-icon"><svg><use href="#i-share-ios"/></svg></span>
+        <span class="ios-step-text"><span data-i18n="ios_step1_a">Toca</span> <b data-i18n="ios_share">Compartir</b> <span data-i18n="ios_step1_b">en tu navegador</span></span>
+      </li>
+      <li class="ios-step">
+        <span class="ios-step-num">2</span>
+        <span class="ios-step-icon"><svg><use href="#i-plus-square"/></svg></span>
+        <span class="ios-step-text"><span data-i18n="ios_step2_a">Toca</span> <b data-i18n="ios_addhome">Añadir a pantalla de inicio</b></span>
+      </li>
+      <li class="ios-step">
+        <span class="ios-step-num">3</span>
+        <span class="ios-step-icon"><svg><use href="#i-check"/></svg></span>
+        <span class="ios-step-text"><span data-i18n="ios_step3_a">Confirma</span> <b data-i18n="ios_add">Añadir</b></span>
+      </li>
+    </ul>
+    <button class="btn-close" id="ios-close" data-i18n="ios_close">Listo</button>
   </div>
 </div>
 
@@ -1021,17 +1180,16 @@
       a6: "Para uso personal en la mayoría de jurisdicciones, sí. Respeta los derechos del creador.",
       q7: "¿Puedo instalarlo como app en mi celular?",
       a7: "¡Sí! Es una PWA. En Android tu navegador te ofrecerá instalarla. En iOS: Compartir → Añadir a pantalla de inicio.",
-      ios_title: "Instala Muse en tu iPhone",
-      ios_subtitle: "Sigue estos pasos en Safari:",
+      ios_title: "Instala Muse",
+      ios_subtitle: "Acceso directo desde tu pantalla de inicio",
       ios_share: "Compartir",
       ios_addhome: "Añadir a pantalla de inicio",
       ios_add: "Añadir",
-      ios_step1_a: "Toca el botón",
-      ios_step1_b: "en la barra inferior.",
-      ios_step2_a: "Desplaza hacia abajo y toca",
-      ios_step3_a: "Toca",
-      ios_step3_b: "arriba a la derecha.",
-      ios_close: "Entendido",
+      ios_step1_a: "Toca",
+      ios_step1_b: "en tu navegador",
+      ios_step2_a: "Toca",
+      ios_step3_a: "Confirma",
+      ios_close: "Listo",
       footer_privacy: "Privacidad",
       footer_coffee: "Invítame un café",
       install_android_title: "Instala Muse en tu Android",
@@ -1114,17 +1272,16 @@
       a6: "For personal use in most jurisdictions, yes. Respect the creator's rights.",
       q7: "Can I install it as an app on my phone?",
       a7: "Yes! It's a PWA. On Android your browser will offer to install. On iOS: Share → Add to Home Screen.",
-      ios_title: "Install Muse on your iPhone",
-      ios_subtitle: "Follow these steps in Safari:",
+      ios_title: "Install Muse",
+      ios_subtitle: "One-tap access from your home screen",
       ios_share: "Share",
       ios_addhome: "Add to Home Screen",
       ios_add: "Add",
-      ios_step1_a: "Tap the",
-      ios_step1_b: "button in the bottom bar.",
-      ios_step2_a: "Scroll down and tap",
-      ios_step3_a: "Tap",
-      ios_step3_b: "in the top right.",
-      ios_close: "Got it",
+      ios_step1_a: "Tap",
+      ios_step1_b: "in your browser",
+      ios_step2_a: "Tap",
+      ios_step3_a: "Confirm",
+      ios_close: "Done",
       footer_privacy: "Privacy",
       footer_coffee: "Buy me a coffee",
       install_android_title: "Install Muse on Android",

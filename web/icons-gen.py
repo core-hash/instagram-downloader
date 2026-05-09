@@ -18,8 +18,8 @@ def gradient_color(t):
     return lerp(PINK, AMBER, (t - 0.5) * 2)
 
 
-def sparkle_outline(cx, cy, size, points_per_side=40):
-    """4-point sparkle: sharp tips, concave Bezier sides."""
+def sparkle_outline(cx, cy, size, points_per_side=160):
+    """4-point sparkle: sharp tips, concave Bezier sides. Many points for smooth curves."""
     s = size / 2
     tips_unit = [(0, -1), (1, 0), (0, 1), (-1, 0)]
     pts = []
@@ -74,20 +74,26 @@ def draw_sparkle(img, cx, cy, size, with_glow=True):
     img.alpha_composite(grad_rgba)
 
 
-def make_icon(size, fname, rounded=False, padding_pct=0.18, with_bg=True):
+def make_icon(size, fname, rounded=False, padding_pct=0.20, with_bg=True, ss=4):
+    """Render at ss× resolution, downsample with LANCZOS for crisp anti-aliasing."""
+    big = size * ss
     if with_bg:
-        img = Image.new("RGBA", (size, size), BG_DARK + (255,))
+        img = Image.new("RGBA", (big, big), BG_DARK + (255,))
     else:
-        img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+        img = Image.new("RGBA", (big, big), (0, 0, 0, 0))
 
-    sparkle_size = size * (1 - 2 * padding_pct)
-    draw_sparkle(img, size / 2, size / 2, sparkle_size, with_glow=size >= 192)
+    sparkle_size = big * (1 - 2 * padding_pct)
+    draw_sparkle(img, big / 2, big / 2, sparkle_size, with_glow=size >= 180)
+
+    img = img.resize((size, size), Image.LANCZOS)
 
     if rounded:
-        mask = Image.new("L", (size, size), 0)
-        mdraw = ImageDraw.Draw(mask)
-        radius = int(size * 0.22)
-        mdraw.rounded_rectangle([(0, 0), (size, size)], radius=radius, fill=255)
+        # Render mask at ss× too for smooth corners
+        mask_big = Image.new("L", (big, big), 0)
+        mdraw = ImageDraw.Draw(mask_big)
+        radius_big = int(big * 0.22)
+        mdraw.rounded_rectangle([(0, 0), (big, big)], radius=radius_big, fill=255)
+        mask = mask_big.resize((size, size), Image.LANCZOS)
         out = Image.new("RGBA", (size, size), (0, 0, 0, 0))
         out.paste(img, (0, 0), mask)
         img = out
@@ -161,10 +167,15 @@ def make_og_image():
 
 
 def main():
-    make_icon(192, "icon-192.png", rounded=False, with_bg=True)
-    make_icon(512, "icon-512.png", rounded=False, with_bg=True)
-    make_icon(180, "apple-touch-icon.png", rounded=True, with_bg=True)
-    make_icon(512, "icon-512-maskable.png", rounded=False, padding_pct=0.22, with_bg=True)
+    # iOS apple-touch-icon: NO rounded corners (iOS adds them automatically; double-rounding looks bad)
+    make_icon(180, "apple-touch-icon.png", rounded=False, with_bg=True, padding_pct=0.18)
+    # Android & PWA standard icons
+    make_icon(192, "icon-192.png", rounded=False, with_bg=True, padding_pct=0.18)
+    make_icon(512, "icon-512.png", rounded=False, with_bg=True, padding_pct=0.18)
+    # Marketing / splash 1024
+    make_icon(1024, "icon-1024.png", rounded=False, with_bg=True, padding_pct=0.18)
+    # Maskable: needs more padding so OS can crop edges
+    make_icon(512, "icon-512-maskable.png", rounded=False, padding_pct=0.25, with_bg=True)
     make_og_image()
 
 
