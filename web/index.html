@@ -1341,14 +1341,14 @@
       <span class="gradient-text" data-i18n="h1_grad">lo que te inspira</span>
       <span data-i18n="h1_part2">en un click.</span>
     </h1>
-    <p class="lead" data-i18n="lead">Posts, reels, carruseles, stories y videos. De Instagram, TikTok, YouTube, X, Reddit y Pinterest. Máxima calidad, sin marca de agua, sin login.</p>
+    <p class="lead" data-i18n="lead">Posts, reels, carruseles, stories y videos. De Instagram, TikTok, X, Reddit y Pinterest. Máxima calidad, sin marca de agua, sin login.</p>
     <div class="stats">
       <span class="stat-counter">
         <span class="num" id="counter">0</span>
         <span class="lbl" data-i18n="stat_downloads">descargas en total</span>
       </span>
       <span class="stat-sep">·</span>
-      <span class="stat"><strong>6</strong> <span data-i18n="stat_platforms">plataformas</span></span>
+      <span class="stat"><strong>5</strong> <span data-i18n="stat_platforms">plataformas</span></span>
       <span class="stat-sep">·</span>
       <span class="stat"><strong>HD / 4K</strong> <span data-i18n="stat_quality">Calidad Original</span></span>
       <span class="stat-sep">·</span>
@@ -1385,7 +1385,6 @@
     <div class="platforms">
       <div class="plat"><svg class="ico ico-instagram"><use href="#p-instagram"/></svg><span class="label">Instagram</span></div>
       <div class="plat"><svg class="ico ico-tiktok"><use href="#p-tiktok"/></svg><span class="label">TikTok</span></div>
-      <div class="plat"><svg class="ico ico-youtube"><use href="#p-youtube"/></svg><span class="label">YouTube</span></div>
       <div class="plat"><svg class="ico ico-twitter"><use href="#p-twitter"/></svg><span class="label">X / Twitter</span></div>
       <div class="plat"><svg class="ico ico-reddit"><use href="#p-reddit"/></svg><span class="label">Reddit</span></div>
       <div class="plat"><svg class="ico ico-pinterest"><use href="#p-pinterest"/></svg><span class="label">Pinterest</span></div>
@@ -1594,7 +1593,7 @@
       h1_part1: "Guarda",
       h1_grad: "lo que te inspira",
       h1_part2: "en un click.",
-      lead: "Posts, reels, carruseles, stories y videos. De Instagram, TikTok, YouTube, X, Reddit y Pinterest. Máxima calidad, sin marca de agua, sin login.",
+      lead: "Posts, reels, carruseles, stories y videos. De Instagram, TikTok, X, Reddit y Pinterest. Máxima calidad, sin marca de agua, sin login.",
       stat_downloads: "descargas en total",
       stat_platforms: "plataformas",
       stat_quality: "Calidad Original",
@@ -1644,7 +1643,7 @@
       q2: "¿Guardan mis descargas o mis links?",
       a2: "No. El archivo se procesa en memoria y se borra al instante. No guardamos historial ni rastreamos.",
       q3: "¿De qué plataformas puedo descargar?",
-      a3: "Instagram (posts, reels, carruseles, stories), TikTok, YouTube (4K/1080p/MP3), X/Twitter, Reddit y Pinterest.",
+      a3: "Instagram (posts, reels, carruseles, stories), TikTok (Video o MP3), X/Twitter, Reddit y Pinterest.",
       q4: "¿Por qué a veces tarda en empezar?",
       a4: "El servidor se duerme tras 15 minutos sin uso. La primera descarga después tarda ~30 segundos en levantar el sistema. Después responde al instante.",
       q5: "¿Puedo descargar de cuentas privadas?",
@@ -1749,7 +1748,7 @@
       q2: "Do you save my downloads or links?",
       a2: "No. The file is processed in memory and wiped instantly. We keep no history and don't track.",
       q3: "Which platforms are supported?",
-      a3: "Instagram (posts, reels, carousels, stories), TikTok, YouTube (4K/1080p/MP3), X/Twitter, Reddit and Pinterest.",
+      a3: "Instagram (posts, reels, carousels, stories), TikTok (Video or MP3), X/Twitter, Reddit and Pinterest.",
       q4: "Why does it sometimes take a while to start?",
       a4: "The server sleeps after 15 minutes of inactivity. The first download after that takes ~30 seconds to wake the system. After that, instant.",
       q5: "Can I download from private accounts?",
@@ -2007,21 +2006,6 @@
         { fmt: 'video', label: t('fmt_video'), icon: 'i-video' },
         { fmt: 'mp3',   label: t('fmt_audio'), icon: 'i-music' },
       ]);
-      return;
-    }
-
-    if (/youtube\.com\/watch|youtu\.be\/|youtube\.com\/shorts/i.test(probeUrl)) {
-      // Show loading chips immediately
-      renderChips([
-        { fmt: 'video', label: 'Detectando…', icon: 'i-video', loading: true },
-      ]);
-      // Debounce the probe call
-      clearTimeout(probeDebounce);
-      probeDebounce = setTimeout(async () => {
-        const result = await probeYouTube(probeUrl);
-        const maxH = result?.max_height || 0;
-        renderChips(ytChipsForMaxHeight(maxH));
-      }, 600);
       return;
     }
 

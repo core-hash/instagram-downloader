@@ -31,13 +31,13 @@ NETSCAPE_HEADER = "# Netscape HTTP Cookie File\n# Auto-generated.\n\n"
 PLATFORM_RULES = [
     ("instagram", r"instagram\.com|cdninstagram\.com",   "gallery-dl"),
     ("tiktok",    r"tiktok\.com|vm\.tiktok\.com",        "yt-dlp"),
-    ("youtube",   r"youtube\.com|youtu\.be|youtube-nocookie\.com", "yt-dlp"),
     ("twitter",   r"twitter\.com|x\.com",                "gallery-dl"),
     ("reddit",    r"reddit\.com|redd\.it",               "gallery-dl"),
     ("pinterest", r"pinterest\.|pin\.it",                "gallery-dl"),
 ]
 
 UNSUPPORTED_PATTERNS = [
+    (r"youtube\.com|youtu\.be",                          "YouTube no está disponible en este momento (bloqueo de IP del servidor)."),
     (r"facebook\.com|fb\.watch|fb\.com",                 "Facebook no está soportado actualmente."),
     (r"vimeo\.com",                                      "Vimeo no está soportado actualmente."),
     (r"twitch\.tv",                                      "Twitch no está soportado actualmente."),
@@ -689,19 +689,7 @@ def probe():
                 pass
 
     if proc.returncode != 0 or not proc.stdout.strip():
-        return jsonify({
-            "platform": platform,
-            "max_height": None,
-            "error": "probe_failed",
-            "rc": proc.returncode,
-            "stderr": (proc.stderr or "")[-1200:],
-            "cookies_used": has_yt_cookies,
-            "cookies_size_bytes": _dbg_cookies_size,
-            "cookies_lines": _dbg_cookies_lines,
-            "cookies_domains_first5": _dbg_cookies_domains,
-            "cookie_names": _dbg_cookie_names,
-            "ytdlp_version": _ytdlp_ver,
-        }), 200
+        return jsonify({"platform": platform, "max_height": None, "error": "probe_failed"}), 200
 
     try:
         info = json.loads(proc.stdout)
