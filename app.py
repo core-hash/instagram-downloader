@@ -201,13 +201,17 @@ def download_via_ytdlp(url: str, target_dir: str, audio_only: bool = False, max_
             "--audio-quality", "0",
         ])
     elif max_height:
+        # Permissive selector: works with any extractor output (HLS, DASH, progressive).
+        # -S sorts to PREFER closest match to max_height without filtering everything out.
         cmd.extend([
-            "-f", f"bestvideo[height<={max_height}]+bestaudio/best[height<={max_height}]/bestvideo*+bestaudio/best",
+            "-f", "bv*+ba/b",
+            "-S", f"res:{max_height},vcodec:h264,acodec:m4a",
             "--merge-output-format", "mp4",
         ])
     else:
         cmd.extend([
-            "-f", "bestvideo*+bestaudio/best",
+            "-f", "bv*+ba/b",
+            "-S", "res,vcodec:h264,acodec:m4a",
             "--merge-output-format", "mp4",
         ])
 

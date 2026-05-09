@@ -23,10 +23,7 @@
         document.documentElement.classList.add('pwa');
       }
       var stored = localStorage.getItem('muse-theme');
-      var theme = stored;
-      if (theme !== 'light' && theme !== 'dark') {
-        theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-      }
+      var theme = (stored === 'light' || stored === 'dark') ? stored : 'dark';
       document.documentElement.dataset.theme = theme;
     })();
   </script>
