@@ -80,6 +80,29 @@
       .wrap { padding-top: 12px; }
     }
 
+    /* === PWA standalone mode: app-like minimal layout === */
+    html.pwa footer,
+    html.pwa #credit,
+    html.pwa #online-pill {
+      display: none !important;
+    }
+    html.pwa .wrap {
+      padding-top: 14px;
+      padding-bottom: 28px;
+    }
+    html.pwa header.topbar {
+      margin-bottom: 32px;
+    }
+    html.pwa h1 {
+      font-size: clamp(30px, 7vw, 48px);
+    }
+    html.pwa p.lead {
+      font-size: 15px;
+      margin-bottom: 22px;
+    }
+    html.pwa .section { margin-top: 56px; }
+    html.pwa #faq { margin-bottom: 32px; }
+
     .bg-mesh {
       position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none;
       contain: strict; width: 100vw; height: 100vh;
@@ -988,7 +1011,7 @@
       <button class="pill icon-only" id="share-btn" type="button" aria-label="Compartir">
         <svg><use href="#i-share"/></svg>
       </button>
-      <span class="pill"><span class="dot-live"></span><span data-i18n="online">Online</span></span>
+      <span class="pill" id="online-pill"><span class="dot-live"></span><span data-i18n="online">Online</span></span>
     </div>
   </header>
 
@@ -1007,7 +1030,7 @@
       <span class="stat-sep">·</span>
       <span class="stat"><strong>5</strong> <span data-i18n="stat_platforms">plataformas</span></span>
       <span class="stat-sep">·</span>
-      <span class="stat"><strong>HD</strong> <span data-i18n="stat_quality">calidad original</span></span>
+      <span class="stat"><strong>HD / 4K</strong> <span data-i18n="stat_quality">Calidad Original</span></span>
       <span class="stat-sep">·</span>
       <span class="stat"><strong data-i18n="stat_zero">Cero</strong> <span data-i18n="stat_watermark">marca de agua</span></span>
     </div>
@@ -1249,7 +1272,7 @@
       lead: "Posts, reels, carruseles, stories y videos. De Instagram, TikTok, X, Reddit y Pinterest. Máxima calidad, sin marca de agua, sin login.",
       stat_downloads: "descargas en total",
       stat_platforms: "plataformas",
-      stat_quality: "calidad original",
+      stat_quality: "Calidad Original",
       stat_zero: "Cero",
       stat_watermark: "marca de agua",
       form_label: "Pega tu link",
@@ -1355,7 +1378,7 @@
       lead: "Posts, reels, carousels, stories and videos. From Instagram, TikTok, X, Reddit and Pinterest. Top quality, no watermark, no login.",
       stat_downloads: "total downloads",
       stat_platforms: "platforms",
-      stat_quality: "original quality",
+      stat_quality: "Original Quality",
       stat_zero: "Zero",
       stat_watermark: "watermark",
       form_label: "Paste your link",
@@ -1764,6 +1787,8 @@
     || window.navigator.standalone === true;
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const isAndroid = /Android/.test(navigator.userAgent);
+  // Apply app-like layout when running as installed PWA
+  if (isStandalone) document.documentElement.classList.add('pwa');
   // Re-show install banner 3 days after dismissal (instead of permanent)
   const INSTALL_COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000;
   const dismissedAt = parseInt(localStorage.getItem('muse-install-dismissed-at') || '0', 10);
