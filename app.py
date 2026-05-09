@@ -124,9 +124,30 @@ def download_via_gallery_dl(url: str, target_dir: str) -> tuple[int, str]:
     return proc.returncode, (proc.stderr.strip() or proc.stdout.strip())
 
 
+YT_USER_AGENT = (
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5_1 like Mac OS X) "
+    "AppleWebKit/605.1.15 (KHTML, like Gecko) "
+    "Version/17.5 Mobile/15E148 Safari/604.1"
+)
+
+
+def write_yt_cookies_file(path: str) -> bool:
+    raw = os.environ.get("YT_COOKIES", "").strip()
+    if not raw:
+        return False
+    if not raw.startswith("# Netscape"):
+        raw = NETSCAPE_HEADER + raw
+    with open(path, "w") as f:
+        f.write(raw)
+        if not raw.endswith("\n"):
+            f.write("\n")
+    return True
+
+
 def download_via_ytdlp(url: str, target_dir: str) -> tuple[int, str]:
     out_template = os.path.join(target_dir, "%(autonumber)02d.%(ext)s")
-    info_template = os.path.join(target_dir, "info.%(ext)s")
+    cookies_path = os.path.join(target_dir, "_yt_cookies.txt")
+    has_yt_cookies = write_yt_cookies_file(cookies_path)
 
     cmd = [
         sys.executable, "-m", "yt_dlp",
@@ -140,13 +161,22 @@ def download_via_ytdlp(url: str, target_dir: str) -> tuple[int, str]:
         "--no-write-thumbnail",
         "--no-playlist",
         "--restrict-filenames",
+        "--extractor-args", "youtube:player_client=ios,mweb,web",
+        "--user-agent", YT_USER_AGENT,
+        "--add-header", "Accept-Language:es-ES,es;q=0.9,en;q=0.8",
     ]
+    if has_yt_cookies:
+        cmd.extend(["--cookies", cookies_path])
     cmd.append(url)
 
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
-    except subprocess.TimeoutExpired:
-        raise
+    finally:
+        if os.path.exists(cookies_path):
+            try:
+                os.remove(cookies_path)
+            except OSError:
+                pass
 
     return proc.returncode, (proc.stderr.strip() or proc.stdout.strip())
 
@@ -272,6 +302,8 @@ def map_error_response(output: str, platform: str | None) -> tuple[dict, int]:
         return {"error": "Publicación no encontrada o eliminada."}, 404
     if "no video formats" in low or "unable to extract" in low:
         return {"error": "No se pudo extraer media de este link. Verifica que sea público y soportado."}, 422
+    if "sign in" in low or "confirm you" in low or "not a bot" in low:
+        return {"error": "YouTube exige autenticación para esta IP. Considera configurar YT_COOKIES en el servidor con cookies de YouTube."}, 401
     return {"error": f"Error al descargar: {output[:400]}"}, 500
 
 
