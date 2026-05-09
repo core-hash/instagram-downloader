@@ -131,6 +131,15 @@ YT_USER_AGENT = (
     "AppleWebKit/605.1.15 (KHTML, like Gecko) "
     "Version/17.5 Mobile/15E148 Safari/604.1"
 )
+TIKTOK_USER_AGENT = (
+    "Mozilla/5.0 (Linux; Android 14; SM-S928U) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/126.0.6478.71 Mobile Safari/537.36"
+)
+
+
+def _is_tiktok(url: str) -> bool:
+    return bool(re.search(r"tiktok\.com|vm\.tiktok\.com", url, re.IGNORECASE))
 
 try:
     import imageio_ffmpeg
@@ -157,6 +166,14 @@ def download_via_ytdlp(url: str, target_dir: str, audio_only: bool = False) -> t
     cookies_path = os.path.join(target_dir, "_yt_cookies.txt")
     has_yt_cookies = write_yt_cookies_file(cookies_path)
 
+    is_tt = _is_tiktok(url)
+    ua = TIKTOK_USER_AGENT if is_tt else YT_USER_AGENT
+    extractor_args = (
+        "tiktok:app_name=trill;tiktok:app_version=34.1.2;tiktok:manifest_app_version=2023408050"
+        if is_tt
+        else "youtube:player_client=ios,mweb,web"
+    )
+
     cmd = [
         sys.executable, "-m", "yt_dlp",
         "-o", out_template,
@@ -167,9 +184,11 @@ def download_via_ytdlp(url: str, target_dir: str, audio_only: bool = False) -> t
         "--no-write-thumbnail",
         "--no-playlist",
         "--restrict-filenames",
-        "--extractor-args", "youtube:player_client=ios,mweb,web",
-        "--user-agent", YT_USER_AGENT,
+        "--extractor-args", extractor_args,
+        "--user-agent", ua,
         "--add-header", "Accept-Language:es-ES,es;q=0.9,en;q=0.8",
+        "--retries", "3",
+        "--fragment-retries", "3",
     ]
     if FFMPEG_PATH:
         cmd.extend(["--ffmpeg-location", FFMPEG_PATH])
@@ -199,6 +218,19 @@ def download_via_ytdlp(url: str, target_dir: str, audio_only: bool = False) -> t
                 os.remove(cookies_path)
             except OSError:
                 pass
+
+    # If TikTok failed with status 0 / not available, retry with web client args
+    if is_tt and proc.returncode != 0 and ("status code 0" in proc.stderr.lower() or "not available" in proc.stderr.lower()):
+        cmd_retry = list(cmd)
+        # Replace extractor-args
+        for i, a in enumerate(cmd_retry):
+            if a == "--extractor-args":
+                cmd_retry[i + 1] = "tiktok:api_hostname=api22-normal-c-useast2a.tiktokv.com"
+                break
+        try:
+            proc = subprocess.run(cmd_retry, capture_output=True, text=True, timeout=180)
+        except subprocess.TimeoutExpired:
+            pass
 
     return proc.returncode, (proc.stderr.strip() or proc.stdout.strip())
 
@@ -326,6 +358,8 @@ def map_error_response(output: str, platform: str | None) -> tuple[dict, int]:
         return {"error": "No se pudo extraer media de este link. Verifica que sea público y soportado."}, 422
     if "sign in" in low or "confirm you" in low or "not a bot" in low:
         return {"error": "YouTube exige autenticación para esta IP. Considera configurar YT_COOKIES en el servidor con cookies de YouTube."}, 401
+    if "status code 0" in low or "video not available" in low:
+        return {"error": "Video no disponible (puede estar removido, ser privado o tener restricciones de región)."}, 404
     return {"error": f"Error al descargar: {output[:400]}"}, 500
 
 
