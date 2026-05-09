@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Política de Privacidad — Muse</title>
+  <meta name="description" content="Política de privacidad de Muse. No guardamos tus descargas, no rastreamos, no almacenamos.">
+  <link rel="icon" href="/apple-touch-icon.png?v=5">
+  <meta name="theme-color" content="#0a0a0f">
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --panel: #12121a;
+      --border: #26262f;
+      --text: #f5f5f7;
+      --muted: #8b8b95;
+      --violet: #a78bfa;
+      --pink: #f472b6;
+      --amber: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--bg); color: var(--text);
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 56px 24px 80px; }
+    .topnav {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 56px;
+    }
+    .brand-link { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .logo { width: 32px; height: 32px; flex-shrink: 0; }
+    .brand {
+      font-size: 20px; font-weight: 700; letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #c4b5fd, #f472b6, #fbbf24);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .brand-dot { color: var(--amber); -webkit-text-fill-color: var(--amber); margin-left: 2px; }
+    a.back {
+      color: var(--muted); text-decoration: none;
+      font-size: 13px; padding: 8px 14px;
+      border: 1px solid var(--border); border-radius: 999px;
+      transition: all 0.15s;
+    }
+    a.back:hover { color: var(--text); border-color: var(--violet); }
+    h1 {
+      font-size: clamp(32px, 5vw, 44px);
+      font-weight: 800; letter-spacing: -0.025em;
+      margin: 0 0 12px;
+    }
+    .updated { color: var(--muted); font-size: 14px; margin: 0 0 40px; }
+    h2 {
+      font-size: 20px; font-weight: 700;
+      margin: 36px 0 12px;
+      letter-spacing: -0.015em;
+    }
+    p { margin: 0 0 16px; color: #d8d8de; font-size: 15px; }
+    p strong { color: var(--text); font-weight: 700; }
+    ul { padding-left: 20px; color: #d8d8de; font-size: 15px; }
+    li { margin-bottom: 8px; }
+    a.inline { color: var(--violet); text-decoration: none; }
+    a.inline:hover { text-decoration: underline; }
+    .highlight {
+      background: linear-gradient(135deg, rgba(167,139,250,0.10), rgba(244,114,182,0.08));
+      border: 1px solid rgba(167,139,250,0.25);
+      border-radius: 14px;
+      padding: 20px 22px;
+      margin: 24px 0;
+    }
+    .highlight strong { color: var(--text); }
+    footer {
+      margin-top: 60px; padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 12px; color: var(--muted);
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+    }
+    footer a { color: var(--muted); text-decoration: none; transition: color 0.15s; }
+    footer a:hover { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="topnav">
+      <a class="brand-link" href="/">
+        <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="g" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#c4b5fd"/>
+              <stop offset="50%" stop-color="#f472b6"/>
+              <stop offset="100%" stop-color="#fbbf24"/>
+            </linearGradient>
+          </defs>
+          <path d="M50 4 Q54.14 45.86 96 50 Q54.14 54.14 50 96 Q45.86 54.14 4 50 Q45.86 45.86 50 4 Z" fill="url(#g)"/>
+        </svg>
+        <span class="brand">muse<span class="brand-dot">.</span></span>
+      </a>
+      <a class="back" href="/">← Volver</a>
+    </nav>
+
+    <h1>Política de Privacidad</h1>
+    <p class="updated">Última actualización: 9 de mayo de 2026</p>
+
+    <div class="highlight">
+      <p><strong>Resumen en una línea:</strong> No guardamos absolutamente nada. Tu archivo se procesa en memoria y se borra del servidor al instante.</p>
+    </div>
+
+    <h2>Qué información recolectamos</h2>
+    <p>Muse fue diseñada con privacidad por default. Esto es exactamente lo que pasa cuando usas la app:</p>
+    <ul>
+      <li><strong>El link que pegas</strong> se procesa en memoria del servidor y se borra al instante. No se guarda en logs ni en base de datos.</li>
+      <li><strong>El archivo descargado</strong> se genera en una carpeta temporal, se te envía, y se elimina del servidor inmediatamente después.</li>
+      <li><strong>Tu dirección IP</strong> es recibida por nuestro proveedor de hosting (Cloudflare/Render) por motivos técnicos estándar (rate limiting, prevención de abuso). No la asociamos a tus descargas.</li>
+      <li><strong>Cookies del navegador</strong>: usamos solo localStorage para guardar tu preferencia de idioma, tema (claro/oscuro), y si dismisseaste el banner de instalación. Cero tracking, cero advertising IDs.</li>
+    </ul>
+
+    <h2>Qué NO hacemos</h2>
+    <ul>
+      <li>No requerimos crear cuenta ni pedimos email</li>
+      <li>No tenemos historial de descargas</li>
+      <li>No usamos cookies de terceros</li>
+      <li>No vendemos ni compartimos datos con anunciantes</li>
+      <li>No insertamos analytics invasivos (usamos Cloudflare Web Analytics que es agregado y privacy-first)</li>
+      <li>No identificamos al usuario individualmente</li>
+    </ul>
+
+    <h2>Servicios de terceros</h2>
+    <p>Muse interactúa con las siguientes plataformas exclusivamente para extraer el contenido público que pegas:</p>
+    <ul>
+      <li>Instagram, TikTok, X (Twitter), Reddit, Pinterest — solo cuando proveen el link, exclusivamente para acceder al contenido público.</li>
+      <li>Cloudflare (hosting del frontend y CDN)</li>
+      <li>Render (hosting del backend de procesamiento)</li>
+    </ul>
+    <p>Ninguno de estos servicios recibe información personal sobre ti más allá de lo técnicamente necesario para servir la página.</p>
+
+    <h2>Contenido descargado</h2>
+    <p>El contenido que descargas a través de Muse <strong>pertenece a sus creadores originales</strong>. Muse es una herramienta para uso personal — guardar referencias, archivar tu propio contenido, construir moodboards. Si redistribuyes contenido ajeno comercialmente, eso es responsabilidad tuya, no de Muse.</p>
+
+    <h2>Reportes de contenido</h2>
+    <p>Si crees que alguien está usando Muse para violar tus derechos de autor o quieres reportar abuso, escríbenos a <a class="inline" href="mailto:hola@bigbangbrand.co">hola@bigbangbrand.co</a>. Procesamos cada reporte personalmente.</p>
+
+    <h2>Cambios a esta política</h2>
+    <p>Si actualizamos esta política, publicaremos la nueva versión en esta misma página y cambiaremos la fecha de "Última actualización" arriba. Cambios materiales se anunciarán en la página principal.</p>
+
+    <h2>Contacto</h2>
+    <p>Muse es una app de <strong>Big Bang Brand</strong>, agencia de inteligencia artificial. Cualquier pregunta sobre esta política, escríbenos:</p>
+    <p>📧 <a class="inline" href="mailto:hola@bigbangbrand.co">hola@bigbangbrand.co</a><br>
+    🌐 <a class="inline" href="https://www.bigbangbrand.co" target="_blank" rel="noopener">bigbangbrand.co</a></p>
+
+    <footer>
+      <span>© Muse 2026 · Big Bang Brand</span>
+      <a href="/">muse-co.pages.dev</a>
+    </footer>
+  </div>
+</body>
+</html>
