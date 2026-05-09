@@ -1,4 +1,5 @@
 import io
+import json
 import os
 import re
 import shutil
@@ -67,6 +68,7 @@ def download_via_gallery_dl(url: str, target_dir: str) -> tuple[int, str]:
         sys.executable, "-m", "gallery_dl",
         "-D", target_dir,
         "--filename", "{num:>02}.{extension}",
+        "--write-metadata",
         "--no-mtime",
     ]
     if has_cookies:
@@ -83,6 +85,30 @@ def download_via_gallery_dl(url: str, target_dir: str) -> tuple[int, str]:
                 pass
 
     return proc.returncode, (proc.stderr.strip() or proc.stdout.strip())
+
+
+def safe_chunk(s: str, max_len: int = 60) -> str:
+    s = re.sub(r"[^\w\-.]", "_", s).strip("._")
+    return s[:max_len] or "x"
+
+
+def build_zip_filename(target_dir: str, shortcode: str) -> str:
+    for name in sorted(os.listdir(target_dir)):
+        if not name.endswith(".json") or name.startswith("_"):
+            continue
+        try:
+            with open(os.path.join(target_dir, name), "r", encoding="utf-8") as f:
+                meta = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            continue
+        username = (meta.get("username") or meta.get("owner") or {}).get("username") if isinstance(meta.get("username"), dict) else meta.get("username")
+        username = username or meta.get("user", {}).get("username", "")
+        date_raw = meta.get("date", "")
+        date_str = date_raw[:10] if isinstance(date_raw, str) else ""
+        parts = [safe_chunk(p) for p in (username, date_str, shortcode) if p]
+        if parts:
+            return "_".join(parts) + ".zip"
+    return f"instagram_{shortcode}.zip"
 
 
 def collect_media(target_dir: str) -> list[str]:
@@ -113,7 +139,7 @@ def zip_directory(source_dir: str) -> io.BytesIO:
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
         for root, _, files in os.walk(source_dir):
             for name in files:
-                if name.startswith("_"):
+                if name.startswith("_") or name.endswith(".json"):
                     continue
                 full = os.path.join(root, name)
                 arcname = os.path.relpath(full, source_dir)
@@ -158,13 +184,14 @@ def download():
         if not media:
             return jsonify({"error": "No se descargó ningún archivo."}), 500
 
+        zip_name = build_zip_filename(workdir, shortcode)
         renumber_slides(workdir)
         zip_buffer = zip_directory(workdir)
         return send_file(
             zip_buffer,
             mimetype="application/zip",
             as_attachment=True,
-            download_name=f"instagram_{shortcode}.zip",
+            download_name=zip_name,
         )
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
