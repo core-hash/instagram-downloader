@@ -654,7 +654,7 @@ def probe():
     extractor_args = (
         "tiktok:app_name=trill;tiktok:app_version=34.1.2"
         if is_tt
-        else "youtube:player_client=tv_embedded,web,mweb;formats=missing_pot"
+        else "youtube:player_client=mweb,android,web,tv_embedded,android_music;formats=missing_pot;player_skip=webpage"
     )
 
     cmd = [
@@ -667,6 +667,14 @@ def probe():
     if has_yt_cookies:
         cmd.extend(["--cookies", cookies_path])
     cmd.append(url)
+
+    # Capture yt-dlp version for debug
+    try:
+        _ver_proc = subprocess.run([sys.executable, "-m", "yt_dlp", "--version"],
+                                    capture_output=True, text=True, timeout=5)
+        _ytdlp_ver = _ver_proc.stdout.strip()
+    except Exception:
+        _ytdlp_ver = "unknown"
 
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
@@ -690,6 +698,7 @@ def probe():
             "cookies_size_bytes": _dbg_cookies_size,
             "cookies_lines": _dbg_cookies_lines,
             "cookies_domains_first5": _dbg_cookies_domains,
+            "ytdlp_version": _ytdlp_ver,
         }), 200
 
     try:
