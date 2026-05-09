@@ -633,19 +633,20 @@ def probe():
     _dbg_cookies_size = os.path.getsize(cookies_path) if os.path.exists(cookies_path) else 0
     _dbg_cookies_lines = 0
     _dbg_cookies_domains = []
+    _dbg_cookie_names = []
     try:
         if _dbg_cookies_size > 0:
             with open(cookies_path) as _f:
                 _content = _f.read()
                 _dbg_cookies_lines = _content.count('\n')
-                # Get unique domains in cookie file (lines starting with . or word)
                 _domains = set()
                 for line in _content.splitlines():
                     if line.startswith('#') or not line.strip():
                         continue
                     parts = line.split('\t')
-                    if len(parts) >= 1:
+                    if len(parts) >= 7:
                         _domains.add(parts[0])
+                        _dbg_cookie_names.append(parts[5])
                 _dbg_cookies_domains = sorted(_domains)[:5]
     except Exception:
         pass
@@ -698,6 +699,7 @@ def probe():
             "cookies_size_bytes": _dbg_cookies_size,
             "cookies_lines": _dbg_cookies_lines,
             "cookies_domains_first5": _dbg_cookies_domains,
+            "cookie_names": _dbg_cookie_names,
             "ytdlp_version": _ytdlp_ver,
         }), 200
 
