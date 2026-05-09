@@ -50,13 +50,20 @@ def build_loader(target_dir: str) -> instaloader.Instaloader:
 
     sessionid = os.environ.get("IG_SESSIONID")
     if sessionid:
+        ds_user_id = os.environ.get("IG_DS_USER_ID") or sessionid.split("%3A")[0].split(":")[0]
         cookies = {
             "sessionid": sessionid,
-            "ds_user_id": os.environ.get("IG_DS_USER_ID", ""),
-            "csrftoken": os.environ.get("IG_CSRFTOKEN", "missing"),
+            "ds_user_id": ds_user_id,
+            "csrftoken": os.environ.get("IG_CSRFTOKEN", ""),
             "mid": os.environ.get("IG_MID", ""),
+            "ig_did": os.environ.get("IG_DID", ""),
         }
         loader.context._session.cookies.update({k: v for k, v in cookies.items() if v})
+        loader.context._session.headers.update({
+            "X-IG-App-ID": "936619743392459",
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": "https://www.instagram.com/",
+        })
         ig_username = os.environ.get("IG_USERNAME")
         if ig_username:
             loader.context.username = ig_username
