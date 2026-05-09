@@ -15,13 +15,11 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 
-_origins_env = os.environ.get("ALLOWED_ORIGINS", "")
-# Public API — accept any origin by default.
-# Override via ALLOWED_ORIGINS env var (comma-separated) to restrict.
-ALLOWED_ORIGINS = [o.strip() for o in _origins_env.split(",") if o.strip()] or "*"
+# Public API — allow any origin.
+# (No auth, no cookies, no secrets — CORS restriction adds no security here.)
 CORS(
     app,
-    resources={r"/api/*": {"origins": ALLOWED_ORIGINS}},
+    resources={r"/api/*": {"origins": "*"}},
     expose_headers=["Content-Disposition"],
     supports_credentials=False,
 )
