@@ -432,8 +432,20 @@
       pointer-events: none;
     }
     .form-head {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 10px;
+      position: relative;
+      display: flex; justify-content: center; align-items: center;
+      margin-bottom: 12px;
+      min-height: 20px;
+    }
+    .form-head label { text-align: center; margin: 0; }
+    .form-head .bulk-toggle {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    @media (max-width: 480px) {
+      .form-head .bulk-toggle { font-size: 11px; }
     }
     label {
       display: block; font-size: 11px; color: var(--muted);
@@ -678,7 +690,7 @@
     .plat[data-soon] .ico { opacity: 0.5; }
     .plat[data-soon] .label { color: var(--muted); }
     .plat .ico-instagram { color: #e1306c; }
-    .plat .ico-tiktok    { color: #69c9d0; }
+    .plat .ico-tiktok    { color: var(--text); }
     .plat .ico-youtube   { color: #ff0033; }
     .plat .ico-twitter   { color: var(--text); }
     .plat .ico-reddit    { color: #ff4500; }
