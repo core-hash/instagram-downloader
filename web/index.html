@@ -205,7 +205,7 @@
     .brand-dot {
       color: var(--amber);
       -webkit-text-fill-color: var(--amber);
-      margin-left: -2px;
+      margin-left: 4px;
     }
     .topnav { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .pill {
@@ -787,28 +787,101 @@
     footer {
       max-width: 920px; width: 100%;
       margin: 64px auto 0;
-      padding: 28px 20px 36px;
+      padding: 36px 20px 40px;
       border-top: 1px solid var(--border);
+      font-size: 13px; color: var(--muted);
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 28px;
+    }
+    @media (max-width: 720px) {
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 24px; }
+      .footer-brand { grid-column: 1 / -1; }
+    }
+    @media (max-width: 480px) {
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 20px; }
+    }
+    .footer-brand { display: flex; flex-direction: column; gap: 12px; }
+    .footer-brand-row { display: flex; align-items: center; gap: 10px; }
+    .footer-logo { width: 28px; height: 28px; flex-shrink: 0; }
+    .footer-name {
+      font-size: 18px; font-weight: 700; letter-spacing: -0.02em;
+      background: var(--grad-h);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .footer-tagline {
+      font-size: 13px; color: var(--muted); line-height: 1.5;
+      max-width: 240px;
+    }
+    .footer-col h4 {
+      margin: 0 0 14px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted-2);
+    }
+    .footer-col ul {
+      list-style: none; padding: 0; margin: 0;
+      display: flex; flex-direction: column; gap: 9px;
+    }
+    .footer-col li a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      transition: color 0.15s;
+      display: inline-flex; align-items: center; gap: 6px;
+      cursor: pointer;
+    }
+    .footer-col li a:hover { color: var(--text); }
+    .footer-col li a .ext {
+      font-size: 10px;
+      color: var(--muted-2);
+      transition: transform 0.15s;
+    }
+    .footer-col li a:hover .ext { transform: translate(2px, -2px); color: var(--violet); }
+    .footer-col li.has-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .footer-tag {
+      font-size: 9px;
+      padding: 2px 6px;
+      background: rgba(251, 191, 36, 0.15);
+      color: var(--amber);
+      border-radius: 999px;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .footer-bottom {
       display: flex; justify-content: space-between; align-items: center;
-      gap: 16px; flex-wrap: wrap;
-      font-size: 12px; color: var(--muted);
+      gap: 18px; flex-wrap: wrap;
+      padding-top: 22px;
+      border-top: 1px solid var(--border-soft);
+      font-size: 12px;
+      color: var(--muted-2);
     }
-    .foot-left, .foot-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; justify-content: center; }
     @media (max-width: 600px) {
-      footer { justify-content: center; flex-direction: column; text-align: center; }
+      .footer-bottom { justify-content: center; text-align: center; flex-direction: column-reverse; }
     }
-    footer a { color: var(--muted); text-decoration: none; transition: color 0.15s; display: inline-flex; align-items: center; gap: 6px; }
-    footer a:hover { color: var(--text); }
-    footer .ico-sm { width: 14px; height: 14px; }
+    .footer-meta {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    }
+    .footer-meta .made-in {
+      display: inline-flex; align-items: center; gap: 4px;
+    }
     .coffee {
       display: inline-flex; align-items: center; gap: 8px;
       padding: 9px 16px; background: var(--amber); color: #1a1100 !important;
       border-radius: 999px; text-decoration: none; font-weight: 700; font-size: 13px;
+      transition: box-shadow 0.2s;
     }
     .coffee:hover { box-shadow: 0 4px 14px rgba(251, 191, 36, 0.4); color: #1a1100 !important; }
     .coffee .ico { width: 16px; height: 16px; color: #1a1100; }
     .dot { color: var(--muted-2); }
-    .disclaimer { font-size: 11px; opacity: 0.7; }
   </style>
 </head>
 <body>
@@ -941,7 +1014,7 @@
               <svg><use href="#i-paste"/></svg>
             </button>
           </div>
-          <button id="btn" class="primary" type="submit" data-i18n="form_button">Guardar</button>
+          <button id="btn" class="primary" type="submit" data-i18n="form_button">Descargar</button>
         </div>
         <div id="status" class="status"></div>
       </form>
@@ -1011,7 +1084,7 @@
     </h2>
     <p class="credit-pitch" data-i18n="credit_pitch">Construimos apps con IA para marcas y creadores. Muse es una de las nuestras. ¿Tienes una idea?</p>
     <div class="credit-cta-row">
-      <a class="credit-cta" href="https://www.instagram.com/bigbangbrand" target="_blank" rel="noopener">
+      <a class="credit-cta" href="https://www.bigbangbrand.co" target="_blank" rel="noopener">
         <span data-i18n="credit_cta">Trabajemos</span>
         <svg><use href="#i-arrow-right"/></svg>
       </a>
@@ -1020,7 +1093,7 @@
       <span data-i18n="credit_byline_made">Hecho por</span>
       <a href="https://www.instagram.com/dariomz" target="_blank" rel="noopener">@dariomz</a>
       <span class="sep">·</span>
-      <span data-i18n="credit_byline_role">founder</span>
+      <span data-i18n="credit_byline_role">CEO / Desarrollador</span>
     </div>
   </section>
 
@@ -1092,12 +1165,52 @@
 </div>
 
 <footer>
-  <div class="foot-left">
-    <span>© Muse</span>
-    <span class="dot">·</span>
-    <a href="#" id="privacy"><svg class="ico-sm"><use href="#i-lock"/></svg><span data-i18n="footer_privacy">Privacidad</span></a>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="footer-brand-row">
+        <svg class="footer-logo" viewBox="0 0 100 100"><use href="#muse-sparkle"/></svg>
+        <span class="footer-name">muse<span class="brand-dot">.</span></span>
+      </div>
+      <p class="footer-tagline" data-i18n="footer_tagline">Guarda lo que te inspira de Instagram, TikTok, X, Reddit y Pinterest. En máxima calidad, gratis.</p>
+    </div>
+
+    <div class="footer-col">
+      <h4 data-i18n="footer_col_product">Producto</h4>
+      <ul>
+        <li><a href="#top" data-i18n="footer_link_home">Inicio</a></li>
+        <li><a href="#platforms" data-i18n="footer_link_platforms">Plataformas</a></li>
+        <li><a href="#features" data-i18n="footer_link_features">Características</a></li>
+        <li><a href="#faq" data-i18n="footer_link_faq">FAQ</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4 data-i18n="footer_col_legal">Legal</h4>
+      <ul>
+        <li><a href="#" id="privacy-footer" data-i18n="footer_link_privacy">Privacidad</a></li>
+        <li><a href="#" id="terms-footer" data-i18n="footer_link_terms">Uso personal</a></li>
+        <li><a href="#" id="dmca-footer" data-i18n="footer_link_dmca">Reportar contenido</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4 data-i18n="footer_col_team">Equipo</h4>
+      <ul>
+        <li><a href="https://www.bigbangbrand.co" target="_blank" rel="noopener">Big Bang Brand <span class="ext">↗</span></a></li>
+        <li><a href="https://www.instagram.com/dariomz" target="_blank" rel="noopener">@dariomz <span class="ext">↗</span></a></li>
+        <li><a href="https://github.com/core-hash/instagram-downloader" target="_blank" rel="noopener">GitHub <span class="ext">↗</span></a></li>
+      </ul>
+    </div>
   </div>
-  <div class="foot-right">
+
+  <div class="footer-bottom">
+    <div class="footer-meta">
+      <span>© Muse 2026</span>
+      <span class="dot">·</span>
+      <span class="made-in" data-i18n="footer_made_in">Hecho en Colombia 🇨🇴</span>
+      <span class="dot">·</span>
+      <span data-i18n="footer_disclaimer">Para uso personal. Respeta a los creadores.</span>
+    </div>
     <a class="coffee" href="https://buymeacoffee.com/REEMPLAZAME" target="_blank" rel="noopener">
       <svg class="ico"><use href="#i-coffee"/></svg>
       <span data-i18n="footer_coffee">Invítame un café</span>
@@ -1127,15 +1240,15 @@
       stat_zero: "Cero",
       stat_watermark: "marca de agua",
       form_label: "Pega tu link",
-      form_button: "Guardar",
+      form_button: "Descargar",
       form_placeholder: "https://www.instagram.com/p/...",
       form_placeholder_bulk: "Un link por línea…",
       form_bulk: "+ Pegar varios",
       form_bulk_close: "← Modo simple",
       processing: "Procesando en máxima calidad…",
       processing_bulk: (n) => `Procesando ${n} archivos…`,
-      saved: "Guardado en tu dispositivo",
-      saved_bulk: (n) => `${n} archivos guardados`,
+      saved: "Descargado en tu dispositivo",
+      saved_bulk: (n) => `${n} archivos descargados`,
       err_invalid: "Pega un link válido (https://...).",
       err_no_urls: "No hay links válidos en el texto.",
       supports_eyebrow: "Soporta",
@@ -1161,7 +1274,7 @@
       credit_pitch: "Construimos apps con IA para marcas y creadores. Muse es una de las nuestras. ¿Tienes una idea?",
       credit_cta: "Trabajemos",
       credit_byline_made: "Hecho por",
-      credit_byline_role: "founder",
+      credit_byline_role: "CEO / Desarrollador",
       btn_clear: "Borrar",
       btn_paste: "Pegar",
       faq_eyebrow: "FAQ",
@@ -1190,8 +1303,22 @@
       ios_step2_a: "Toca",
       ios_step3_a: "Confirma",
       ios_close: "Listo",
-      footer_privacy: "Privacidad",
+      footer_tagline: "Guarda lo que te inspira de Instagram, TikTok, X, Reddit y Pinterest. En máxima calidad, gratis.",
+      footer_col_product: "Producto",
+      footer_col_legal: "Legal",
+      footer_col_team: "Equipo",
+      footer_link_home: "Inicio",
+      footer_link_platforms: "Plataformas",
+      footer_link_features: "Características",
+      footer_link_faq: "FAQ",
+      footer_link_privacy: "Privacidad",
+      footer_link_terms: "Uso personal",
+      footer_link_dmca: "Reportar contenido",
+      footer_made_in: "Hecho en Colombia 🇨🇴",
+      footer_disclaimer: "Para uso personal. Respeta a los creadores.",
       footer_coffee: "Invítame un café",
+      terms_alert: "Muse es para uso personal. No redistribuyas contenido ajeno comercialmente. Respeta los términos de cada plataforma y los derechos de los creadores.",
+      dmca_alert: "Si detectaste contenido inapropiado o quieres reportar abuso, escribe a hola@bigbangbrand.co. Procesamos cada reporte personalmente.",
       install_android_title: "Instala Muse en tu Android",
       install_android_sub: "Acceso directo desde tu home, abre rápido",
       install_android_btn: "Instalar",
@@ -1203,7 +1330,7 @@
       paste_invalid: "El texto del portapapeles no parece un link.",
       pasted: "Link pegado",
       share_copied: "Link copiado al portapapeles",
-      bulk_btn: (n) => `Guardar ${n}`,
+      bulk_btn: (n) => `Descargar ${n}`,
     },
     en: {
       title: "Muse — Save what inspires you",
@@ -1253,7 +1380,7 @@
       credit_pitch: "We build AI apps for brands and creators. Muse is one of ours. Got an idea?",
       credit_cta: "Let's work together",
       credit_byline_made: "Made by",
-      credit_byline_role: "founder",
+      credit_byline_role: "CEO / Developer",
       btn_clear: "Clear",
       btn_paste: "Paste",
       faq_eyebrow: "FAQ",
@@ -1282,8 +1409,22 @@
       ios_step2_a: "Tap",
       ios_step3_a: "Confirm",
       ios_close: "Done",
-      footer_privacy: "Privacy",
+      footer_tagline: "Save what inspires you from Instagram, TikTok, X, Reddit and Pinterest. Top quality, free.",
+      footer_col_product: "Product",
+      footer_col_legal: "Legal",
+      footer_col_team: "Team",
+      footer_link_home: "Home",
+      footer_link_platforms: "Platforms",
+      footer_link_features: "Features",
+      footer_link_faq: "FAQ",
+      footer_link_privacy: "Privacy",
+      footer_link_terms: "Personal use",
+      footer_link_dmca: "Report content",
+      footer_made_in: "Made in Colombia 🇨🇴",
+      footer_disclaimer: "For personal use. Respect creators.",
       footer_coffee: "Buy me a coffee",
+      terms_alert: "Muse is for personal use. Don't redistribute others' content commercially. Respect each platform's terms and creators' rights.",
+      dmca_alert: "If you found inappropriate content or want to report abuse, email hola@bigbangbrand.co. We handle every report personally.",
       install_android_title: "Install Muse on Android",
       install_android_sub: "One-tap access from your home screen",
       install_android_btn: "Install",
@@ -1476,11 +1617,14 @@
     }
   });
 
-  // ============= Privacy alert =============
-  document.getElementById('privacy').addEventListener('click', (e) => {
-    e.preventDefault();
-    alert(t('privacy_alert'));
-  });
+  // ============= Footer link alerts =============
+  function bindAlert(id, key) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', (e) => { e.preventDefault(); alert(t(key)); });
+  }
+  bindAlert('privacy-footer', 'privacy_alert');
+  bindAlert('terms-footer', 'terms_alert');
+  bindAlert('dmca-footer', 'dmca_alert');
 
   // ============= Stats counter =============
   const counterEl = document.getElementById('counter');
