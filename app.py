@@ -630,6 +630,25 @@ def probe():
 
     cookies_path = tempfile.mktemp(suffix="_yt_probe.txt")
     has_yt_cookies = write_yt_cookies_file(cookies_path)
+    _dbg_cookies_size = os.path.getsize(cookies_path) if os.path.exists(cookies_path) else 0
+    _dbg_cookies_lines = 0
+    _dbg_cookies_domains = []
+    try:
+        if _dbg_cookies_size > 0:
+            with open(cookies_path) as _f:
+                _content = _f.read()
+                _dbg_cookies_lines = _content.count('\n')
+                # Get unique domains in cookie file (lines starting with . or word)
+                _domains = set()
+                for line in _content.splitlines():
+                    if line.startswith('#') or not line.strip():
+                        continue
+                    parts = line.split('\t')
+                    if len(parts) >= 1:
+                        _domains.add(parts[0])
+                _dbg_cookies_domains = sorted(_domains)[:5]
+    except Exception:
+        pass
     is_tt = _is_tiktok(url)
     ua = TIKTOK_USER_AGENT if is_tt else YT_USER_AGENT
     extractor_args = (
@@ -668,7 +687,9 @@ def probe():
             "rc": proc.returncode,
             "stderr": (proc.stderr or "")[-1200:],
             "cookies_used": has_yt_cookies,
-            "cookies_size": os.path.getsize(cookies_path) if os.path.exists(cookies_path) else 0,
+            "cookies_size_bytes": _dbg_cookies_size,
+            "cookies_lines": _dbg_cookies_lines,
+            "cookies_domains_first5": _dbg_cookies_domains,
         }), 200
 
     try:
