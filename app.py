@@ -92,6 +92,15 @@ def safe_chunk(s: str, max_len: int = 60) -> str:
     return s[:max_len] or "x"
 
 
+def slugify_caption(caption: str, max_words: int = 6, max_chars: int = 50) -> str:
+    if not caption:
+        return ""
+    text = re.sub(r"[^\w\s\-]", " ", caption, flags=re.UNICODE)
+    words = [w for w in text.split() if w]
+    slug = "-".join(w.lower() for w in words[:max_words])
+    return slug[:max_chars].strip("-_")
+
+
 def build_zip_filename(target_dir: str, shortcode: str) -> str:
     for name in sorted(os.listdir(target_dir)):
         if not name.endswith(".json") or name.startswith("_"):
@@ -101,11 +110,16 @@ def build_zip_filename(target_dir: str, shortcode: str) -> str:
                 meta = json.load(f)
         except (OSError, json.JSONDecodeError):
             continue
-        username = (meta.get("username") or meta.get("owner") or {}).get("username") if isinstance(meta.get("username"), dict) else meta.get("username")
-        username = username or meta.get("user", {}).get("username", "")
+        username = meta.get("username") if isinstance(meta.get("username"), str) else ""
+        if not username:
+            owner = meta.get("owner") or meta.get("user") or {}
+            if isinstance(owner, dict):
+                username = owner.get("username", "")
         date_raw = meta.get("date", "")
         date_str = date_raw[:10] if isinstance(date_raw, str) else ""
-        parts = [safe_chunk(p) for p in (username, date_str, shortcode) if p]
+        caption = meta.get("description") or meta.get("caption") or ""
+        caption_slug = slugify_caption(caption) or shortcode
+        parts = [safe_chunk(p) for p in (username, date_str, caption_slug) if p]
         if parts:
             return "_".join(parts) + ".zip"
     return f"instagram_{shortcode}.zip"
