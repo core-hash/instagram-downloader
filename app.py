@@ -4,9 +4,9 @@ import re
 import shutil
 import tempfile
 import zipfile
-from pathlib import Path
+from urllib.parse import unquote
 
-import instaloader
+import yt_dlp
 from flask import Flask, jsonify, render_template, request, send_file
 from flask_cors import CORS
 
@@ -19,76 +19,84 @@ ALLOWED_ORIGINS = os.environ.get(
 CORS(app, resources={r"/api/*": {"origins": ALLOWED_ORIGINS}})
 
 SHORTCODE_RE = re.compile(r"instagram\.com/(?:[^/]+/)?(p|reel|reels|tv)/([A-Za-z0-9_-]+)")
+MEDIA_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov", ".heic", ".m4a"}
+NETSCAPE_HEADER = "# Netscape HTTP Cookie File\n# Auto-generated.\n\n"
 
 
 def extract_shortcode(url: str) -> str | None:
     if not url:
         return None
     match = SHORTCODE_RE.search(url)
-    if not match:
-        return None
-    return match.group(2)
+    return match.group(2) if match else None
 
 
-def build_loader(target_dir: str) -> instaloader.Instaloader:
-    loader = instaloader.Instaloader(
-        dirname_pattern=target_dir,
-        filename_pattern="{shortcode}_{date_utc}_{mediaid}",
-        download_video_thumbnails=False,
-        download_geotags=False,
-        download_comments=False,
-        save_metadata=True,
-        compress_json=False,
-        post_metadata_txt_pattern="{caption}",
-        quiet=True,
-        user_agent=(
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4) "
-            "AppleScript/605.1.15 (KHTML, like Gecko) "
-            "Version/17.4 Safari/605.1.15"
-        ),
-    )
-
+def write_cookies_file(path: str) -> bool:
     sessionid = os.environ.get("IG_SESSIONID")
-    if sessionid:
-        ds_user_id = os.environ.get("IG_DS_USER_ID") or sessionid.split("%3A")[0].split(":")[0]
-        cookies = {
-            "sessionid": sessionid,
-            "ds_user_id": ds_user_id,
-            "csrftoken": os.environ.get("IG_CSRFTOKEN", ""),
-            "mid": os.environ.get("IG_MID", ""),
-            "ig_did": os.environ.get("IG_DID", ""),
-        }
-        loader.context._session.cookies.update({k: v for k, v in cookies.items() if v})
-        loader.context._session.headers.update({
-            "X-IG-App-ID": "936619743392459",
-            "X-Requested-With": "XMLHttpRequest",
-            "Referer": "https://www.instagram.com/",
-        })
-        ig_username = os.environ.get("IG_USERNAME")
-        if ig_username:
-            loader.context.username = ig_username
-        return loader
+    if not sessionid:
+        return False
+    decoded = unquote(sessionid)
+    csrftoken = os.environ.get("IG_CSRFTOKEN", "")
+    ds_user_id = os.environ.get("IG_DS_USER_ID") or decoded.split(":")[0]
+    mid = os.environ.get("IG_MID", "")
+    ig_did = os.environ.get("IG_DID", "")
 
-    session_user = os.environ.get("IG_USERNAME")
-    session_pass = os.environ.get("IG_PASSWORD")
-    session_file = os.environ.get("IG_SESSION_FILE")
-    if session_file and Path(session_file).exists() and session_user:
-        try:
-            loader.load_session_from_file(session_user, session_file)
-        except Exception:
-            pass
-    elif session_user and session_pass:
-        try:
-            loader.login(session_user, session_pass)
-        except Exception:
-            pass
-    return loader
+    expiry = "2147483647"
+    rows = []
+    for name, value in (
+        ("sessionid", sessionid),
+        ("csrftoken", csrftoken),
+        ("ds_user_id", ds_user_id),
+        ("mid", mid),
+        ("ig_did", ig_did),
+    ):
+        if value:
+            rows.append(f".instagram.com\tTRUE\t/\tTRUE\t{expiry}\t{name}\t{value}")
+
+    with open(path, "w") as f:
+        f.write(NETSCAPE_HEADER)
+        f.write("\n".join(rows) + "\n")
+    return True
 
 
-MEDIA_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov", ".heic"}
+def download_via_ytdlp(url: str, target_dir: str, shortcode: str) -> None:
+    cookies_path = os.path.join(target_dir, "_cookies.txt")
+    has_cookies = write_cookies_file(cookies_path)
+
+    out_template = os.path.join(target_dir, f"{shortcode}_%(autonumber)02d.%(ext)s")
+
+    ydl_opts = {
+        "outtmpl": out_template,
+        "autonumber_start": 1,
+        "quiet": True,
+        "no_warnings": True,
+        "noprogress": True,
+        "format": "best",
+        "noplaylist": False,
+        "writeinfojson": False,
+        "writedescription": True,
+        "writethumbnail": False,
+        "ignoreerrors": False,
+        "user_agent": (
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) "
+            "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1 "
+            "Instagram 327.0.0.39.93 (iPhone15,3; iOS 17_4; en_US; en; scale=3.00; 1290x2796; 615279337)"
+        ),
+    }
+    if has_cookies:
+        ydl_opts["cookiefile"] = cookies_path
+
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.extract_info(url, download=True)
+    finally:
+        if os.path.exists(cookies_path):
+            try:
+                os.remove(cookies_path)
+            except OSError:
+                pass
 
 
-def renumber_slides(post_dir: str) -> None:
+def renumber_slides(post_dir: str, shortcode: str) -> None:
     entries = []
     for name in os.listdir(post_dir):
         path = os.path.join(post_dir, name)
@@ -107,16 +115,12 @@ def renumber_slides(post_dir: str) -> None:
     entries.sort(key=lambda e: e[0])
     width = max(2, len(str(len(entries))))
 
-    used = set()
     for slot, (_, original, ext) in enumerate(entries, start=1):
         new_name = f"{str(slot).zfill(width)}{ext}"
-        if new_name in used:
-            continue
         src = os.path.join(post_dir, original)
         dst = os.path.join(post_dir, new_name)
-        if src != dst:
+        if src != dst and not os.path.exists(dst):
             os.replace(src, dst)
-        used.add(new_name)
 
 
 def zip_directory(source_dir: str) -> io.BytesIO:
@@ -124,6 +128,8 @@ def zip_directory(source_dir: str) -> io.BytesIO:
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
         for root, _, files in os.walk(source_dir):
             for name in files:
+                if name.startswith("_"):
+                    continue
                 full = os.path.join(root, name)
                 arcname = os.path.relpath(full, source_dir)
                 zf.write(full, arcname)
@@ -146,42 +152,35 @@ def download():
 
     workdir = tempfile.mkdtemp(prefix="ig_")
     try:
-        loader = build_loader(workdir)
         try:
-            post = instaloader.Post.from_shortcode(loader.context, shortcode)
-        except instaloader.exceptions.LoginRequiredException:
-            return jsonify({"error": "Instagram exige login para esta publicación. Configura IG_SESSIONID en Render → Environment."}), 401
-        except instaloader.exceptions.QueryReturnedNotFoundException:
-            return jsonify({"error": "Publicación no encontrada o eliminada."}), 404
-        except Exception as e:
+            download_via_ytdlp(url, workdir, shortcode)
+        except yt_dlp.utils.DownloadError as e:
             msg = str(e)
             low = msg.lower()
-            if "401" in msg or "wait a few minutes" in low or "please wait" in low:
-                return jsonify({
-                    "error": "Instagram bloqueó la IP del servidor. Configura IG_SESSIONID (cookie de tu sesión) o IG_USERNAME+IG_PASSWORD en Render → Environment.",
-                    "hint": "Para sessionid: abre Instagram en tu navegador, copia el cookie 'sessionid' desde DevTools → Application → Cookies."
-                }), 429
-            if "private" in low or "login" in low:
-                return jsonify({"error": "Publicación privada o requiere login. Configura credenciales en Render."}), 401
-            return jsonify({"error": f"No se pudo obtener la publicación: {msg[:300]}"}), 500
-
-        try:
-            loader.download_post(post, target=shortcode)
+            if "login" in low or "private" in low or "logged" in low:
+                return jsonify({"error": "Esta publicación requiere login o es privada. Verifica que IG_SESSIONID esté actualizado en Render."}), 401
+            if "rate" in low or "wait" in low or "429" in msg:
+                return jsonify({"error": "Instagram aplicó rate-limit. Espera unos minutos y reintenta."}), 429
+            if "404" in msg or "not found" in low:
+                return jsonify({"error": "Publicación no encontrada o eliminada."}), 404
+            return jsonify({"error": f"Error de yt-dlp: {msg[:300]}"}), 500
         except Exception as e:
-            return jsonify({"error": f"Error descargando: {str(e)[:300]}"}), 500
+            return jsonify({"error": f"Error al descargar: {str(e)[:300]}"}), 500
 
-        post_dir = os.path.join(workdir, shortcode)
-        if not os.path.isdir(post_dir) or not os.listdir(post_dir):
-            return jsonify({"error": "La descarga no produjo archivos."}), 500
+        media_files = [
+            f for f in os.listdir(workdir)
+            if not f.startswith("_") and os.path.splitext(f)[1].lower() in MEDIA_EXTS
+        ]
+        if not media_files:
+            return jsonify({"error": "yt-dlp no devolvió archivos descargables."}), 500
 
-        renumber_slides(post_dir)
-        zip_buffer = zip_directory(post_dir)
-        filename = f"instagram_{shortcode}.zip"
+        renumber_slides(workdir, shortcode)
+        zip_buffer = zip_directory(workdir)
         return send_file(
             zip_buffer,
             mimetype="application/zip",
             as_attachment=True,
-            download_name=filename,
+            download_name=f"instagram_{shortcode}.zip",
         )
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
