@@ -484,6 +484,20 @@
       background: rgba(167, 139, 250, 0.12);
       border-color: var(--violet);
     }
+    .chip.loading {
+      opacity: 0.55;
+      cursor: wait;
+      pointer-events: none;
+    }
+    .chip.loading::after {
+      content: ""; display: inline-block;
+      width: 10px; height: 10px;
+      border: 1.5px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      margin-left: 4px;
+      animation: spin 0.7s linear infinite;
+    }
 
     .input-wrap {
       position: relative; flex: 1; min-width: 100%;
@@ -1917,26 +1931,23 @@
     return text.split(/[\n\r]+/).map((s) => s.trim()).filter((s) => /^https?:\/\//i.test(s));
   }
 
-  // ============= Format chips (dynamic per platform) =============
+  // ============= Format chips (dynamic per platform + probe for resolution) =============
   const formatChips = document.getElementById('format-chips');
   let currentFormat = 'video';
+  const probeCache = new Map();
+  let probeAbort = null;
+  let probeDebounce = null;
 
-  // Returns array of chip definitions, or null if platform doesn't expose options
-  function getFormatOptions(probe) {
-    if (/youtube\.com|youtu\.be/i.test(probe)) {
-      return [
-        { fmt: '4k',    label: '4K',          icon: 'i-video' },
-        { fmt: '1080p', label: '1080p HD',    icon: 'i-video' },
-        { fmt: 'mp3',   label: t('fmt_audio'), icon: 'i-music' },
-      ];
-    }
-    if (/tiktok\.com|vm\.tiktok\.com/i.test(probe)) {
-      return [
-        { fmt: 'video', label: t('fmt_video'), icon: 'i-video' },
-        { fmt: 'mp3',   label: t('fmt_audio'), icon: 'i-music' },
-      ];
-    }
-    return null;
+  function ytChipsForMaxHeight(maxH) {
+    const opts = [];
+    if (maxH >= 2160) opts.push({ fmt: '4k', label: '4K', icon: 'i-video' });
+    if (maxH >= 1440) opts.push({ fmt: '1440p', label: '1440p', icon: 'i-video' });
+    if (maxH >= 1080) opts.push({ fmt: '1080p', label: '1080p', icon: 'i-video' });
+    else if (maxH >= 720) opts.push({ fmt: '720p', label: '720p', icon: 'i-video' });
+    else if (maxH > 0) opts.push({ fmt: 'video', label: `${maxH}p`, icon: 'i-video' });
+    else opts.push({ fmt: 'video', label: t('fmt_video'), icon: 'i-video' });
+    opts.push({ fmt: 'mp3', label: t('fmt_audio'), icon: 'i-music' });
+    return opts;
   }
 
   function renderChips(options) {
@@ -1951,28 +1962,73 @@
     options.forEach((opt) => {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'chip' + (opt.fmt === currentFormat ? ' active' : '');
+      btn.className = 'chip' + (opt.fmt === currentFormat ? ' active' : '') + (opt.loading ? ' loading' : '');
       btn.dataset.fmt = opt.fmt;
       btn.setAttribute('role', 'radio');
       btn.setAttribute('aria-checked', String(opt.fmt === currentFormat));
       btn.innerHTML = `<svg><use href="#${opt.icon}"/></svg><span>${opt.label}</span>`;
-      btn.addEventListener('click', () => {
-        currentFormat = opt.fmt;
-        formatChips.querySelectorAll('.chip').forEach((c) => {
-          const on = c.dataset.fmt === currentFormat;
-          c.classList.toggle('active', on);
-          c.setAttribute('aria-checked', String(on));
+      if (!opt.loading) {
+        btn.addEventListener('click', () => {
+          currentFormat = opt.fmt;
+          formatChips.querySelectorAll('.chip').forEach((c) => {
+            const on = c.dataset.fmt === currentFormat;
+            c.classList.toggle('active', on);
+            c.setAttribute('aria-checked', String(on));
+          });
         });
-      });
+      }
       formatChips.appendChild(btn);
     });
     formatChips.classList.add('show');
   }
 
+  async function probeYouTube(url) {
+    if (probeCache.has(url)) return probeCache.get(url);
+    if (probeAbort) probeAbort.abort();
+    probeAbort = new AbortController();
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/probe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+        signal: probeAbort.signal,
+      });
+      const j = await res.json();
+      probeCache.set(url, j);
+      return j;
+    } catch {
+      return null;
+    }
+  }
+
   function refreshFormatChips() {
     const urls = parseUrls(urlEl.value || '');
-    const probe = urls.length === 1 ? urls[0] : (urlEl.value || '');
-    renderChips(getFormatOptions(probe));
+    const probeUrl = urls.length === 1 ? urls[0] : (urlEl.value || '').trim();
+
+    if (/tiktok\.com|vm\.tiktok\.com/i.test(probeUrl)) {
+      renderChips([
+        { fmt: 'video', label: t('fmt_video'), icon: 'i-video' },
+        { fmt: 'mp3',   label: t('fmt_audio'), icon: 'i-music' },
+      ]);
+      return;
+    }
+
+    if (/youtube\.com\/watch|youtu\.be\/|youtube\.com\/shorts/i.test(probeUrl)) {
+      // Show loading chips immediately
+      renderChips([
+        { fmt: 'video', label: 'Detectando…', icon: 'i-video', loading: true },
+      ]);
+      // Debounce the probe call
+      clearTimeout(probeDebounce);
+      probeDebounce = setTimeout(async () => {
+        const result = await probeYouTube(probeUrl);
+        const maxH = result?.max_height || 0;
+        renderChips(ytChipsForMaxHeight(maxH));
+      }, 600);
+      return;
+    }
+
+    renderChips(null);
   }
 
   // ============= Paste / Clear (smart button) =============

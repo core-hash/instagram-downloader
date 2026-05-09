@@ -490,6 +490,8 @@ def download():
     max_height = None
     if fmt == "4k":
         max_height = 2160
+    elif fmt == "1440p":
+        max_height = 1440
     elif fmt == "1080p":
         max_height = 1080
     elif fmt == "720p":
@@ -596,6 +598,81 @@ def _bulk_download(urls: list[str], audio_only: bool = False, max_height: int | 
         )
     finally:
         shutil.rmtree(bulkdir, ignore_errors=True)
+
+
+@app.route("/api/probe", methods=["POST", "OPTIONS"])
+def probe():
+    """Probe a URL with yt-dlp --dump-json to find available resolutions."""
+    if request.method == "OPTIONS":
+        return ("", 204)
+
+    data = request.get_json(silent=True) or request.form
+    url = (data.get("url") or "").strip()
+    if not url or not re.match(r"^https?://", url):
+        return jsonify({"error": "URL inválida"}), 400
+
+    platform, primary_tool = detect_platform(url)
+    # Only probe for yt-dlp-driven platforms (YouTube mainly)
+    if primary_tool != "yt-dlp":
+        return jsonify({"platform": platform, "max_height": None, "supports_audio": True}), 200
+
+    cookies_path = tempfile.mktemp(suffix="_yt_probe.txt")
+    has_yt_cookies = write_yt_cookies_file(cookies_path)
+    is_tt = _is_tiktok(url)
+    ua = TIKTOK_USER_AGENT if is_tt else YT_USER_AGENT
+    extractor_args = (
+        "tiktok:app_name=trill;tiktok:app_version=34.1.2"
+        if is_tt
+        else "youtube:player_client=ios,mweb,web"
+    )
+
+    cmd = [
+        sys.executable, "-m", "yt_dlp",
+        "-J", "--no-warnings", "--no-playlist",
+        "--extractor-args", extractor_args,
+        "--user-agent", ua,
+        "--socket-timeout", "15",
+    ]
+    if has_yt_cookies:
+        cmd.extend(["--cookies", cookies_path])
+    cmd.append(url)
+
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+    except subprocess.TimeoutExpired:
+        return jsonify({"platform": platform, "max_height": None, "error": "timeout"}), 200
+    finally:
+        if os.path.exists(cookies_path):
+            try:
+                os.remove(cookies_path)
+            except OSError:
+                pass
+
+    if proc.returncode != 0 or not proc.stdout.strip():
+        return jsonify({"platform": platform, "max_height": None, "error": "probe_failed"}), 200
+
+    try:
+        info = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return jsonify({"platform": platform, "max_height": None, "error": "bad_json"}), 200
+
+    formats = info.get("formats", []) or []
+    max_h = 0
+    has_audio = False
+    for f in formats:
+        h = f.get("height") or 0
+        if h and h > max_h:
+            max_h = h
+        if f.get("acodec") and f.get("acodec") != "none":
+            has_audio = True
+
+    return jsonify({
+        "platform": platform,
+        "max_height": max_h or None,
+        "supports_audio": has_audio,
+        "title": info.get("title", "")[:120],
+        "duration": info.get("duration"),
+    }), 200
 
 
 @app.route("/healthz")
