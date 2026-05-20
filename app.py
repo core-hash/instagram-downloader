@@ -70,19 +70,42 @@ def extract_short_id(url: str) -> str:
 
 
 def write_cookies_file(path: str) -> bool:
+    """Write Instagram cookies to a Netscape cookies file.
+
+    Priority:
+    1. IG_COOKIES  — full Netscape cookies.txt content (set this from browser export)
+    2. IG_SESSIONID — just the session ID (fallback, decoded automatically)
+    """
+    import base64
+
+    # Option 1: full cookies file (base64-encoded or plain text)
+    raw_cookies = os.environ.get("IG_COOKIES", "")
+    if raw_cookies:
+        # Try base64 decode first, fall back to raw text
+        try:
+            content = base64.b64decode(raw_cookies).decode("utf-8")
+        except Exception:
+            content = raw_cookies
+        with open(path, "w") as f:
+            f.write(content)
+        return True
+
+    # Option 2: individual env vars
     sessionid = os.environ.get("IG_SESSIONID")
     if not sessionid:
         return False
-    decoded = unquote(sessionid)
+
+    # Always store the URL-decoded value in the cookie file
+    decoded_session = unquote(sessionid)
     csrftoken = os.environ.get("IG_CSRFTOKEN", "")
-    ds_user_id = os.environ.get("IG_DS_USER_ID") or decoded.split(":")[0]
+    ds_user_id = os.environ.get("IG_DS_USER_ID") or decoded_session.split(":")[0]
     mid = os.environ.get("IG_MID", "")
     ig_did = os.environ.get("IG_DID", "")
 
     expiry = "2147483647"
     rows = []
     for name, value in (
-        ("sessionid", sessionid),
+        ("sessionid", decoded_session),
         ("csrftoken", csrftoken),
         ("ds_user_id", ds_user_id),
         ("mid", mid),
