@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.request
 import zipfile
 from urllib.parse import unquote
 
@@ -389,6 +390,88 @@ def file_to_buffer(path: str) -> io.BytesIO:
     return buf
 
 
+def download_via_apify(url: str, target_dir: str) -> tuple[int, str]:
+    """Fallback: use Apify Instagram Scraper to get media URLs, then download them.
+    Requires APIFY_API_TOKEN env var.  Works for posts, reels, carousels."""
+    token = os.environ.get("APIFY_API_TOKEN", "")
+    if not token:
+        return 1, "No APIFY_API_TOKEN"
+
+    actor = "apify~instagram-scraper"
+    api_url = (
+        f"https://api.apify.com/v2/acts/{actor}/run-sync-get-dataset-items"
+        f"?token={token}&timeout=120&memory=512"
+    )
+    payload = json.dumps({
+        "directUrls": [url],
+        "resultsType": "posts",
+        "resultsLimit": 1,
+        "addParentData": False,
+    }).encode()
+
+    try:
+        req = urllib.request.Request(
+            api_url,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=130) as resp:
+            items = json.loads(resp.read().decode())
+    except Exception as e:
+        return 1, f"Apify request failed: {str(e)[:200]}"
+
+    if not items:
+        return 1, "Apify: no results"
+
+    post = items[0]
+    downloaded = 0
+
+    def _fetch(media_url: str, fname: str) -> bool:
+        nonlocal downloaded
+        try:
+            r = urllib.request.Request(
+                media_url,
+                headers={"User-Agent": "Mozilla/5.0"},
+            )
+            with urllib.request.urlopen(r, timeout=60) as resp:
+                data = resp.read()
+            if data:
+                with open(os.path.join(target_dir, fname), "wb") as f:
+                    f.write(data)
+                downloaded += 1
+                return True
+        except Exception:
+            pass
+        return False
+
+    # Single video / reel
+    video_url = post.get("videoUrl")
+    if video_url:
+        _fetch(video_url, "01.mp4")
+
+    # Carousel (multiple images/videos)
+    if not downloaded:
+        for i, child in enumerate(post.get("childPosts") or [], start=1):
+            v = child.get("videoUrl")
+            img = child.get("displayUrl") or child.get("thumbnailUrl")
+            if v:
+                _fetch(v, f"{i:02d}.mp4")
+            elif img:
+                _fetch(img, f"{i:02d}.jpg")
+
+    # Single image fallback
+    if not downloaded:
+        img = post.get("displayUrl") or post.get("thumbnailUrl")
+        if img:
+            _fetch(img, "01.jpg")
+
+    if downloaded == 0:
+        return 1, "Apify: no media found in post data"
+
+    return 0, f"Apify: {downloaded} archivo(s)"
+
+
 def map_error_response(output: str, platform: str | None) -> tuple[dict, int]:
     low = output.lower()
     if "login" in low or "private" in low or "401" in output or "logged" in low:
@@ -452,12 +535,22 @@ def _process_one(url: str, workdir: str, audio_only: bool = False, max_height: i
                 rc2, out2 = download_via_gallery_dl(url, workdir)
                 if rc2 == 0 and collect_media(workdir):
                     rc, output = rc2, out2
+            # Apify fallback for Instagram/TikTok when local tools fail
+            if not collect_media(workdir) and platform in ("instagram", "tiktok"):
+                rc3, out3 = download_via_apify(url, workdir)
+                if rc3 == 0 and collect_media(workdir):
+                    rc, output = rc3, out3
         else:
             rc, output = download_via_gallery_dl(url, workdir)
             if rc != 0 or not collect_media(workdir):
                 rc2, out2 = download_via_ytdlp(url, workdir, max_height=max_height)
                 if rc2 == 0 and collect_media(workdir):
                     rc, output = rc2, out2
+            # Apify fallback for Instagram when local tools fail
+            if not collect_media(workdir) and platform == "instagram":
+                rc3, out3 = download_via_apify(url, workdir)
+                if rc3 == 0 and collect_media(workdir):
+                    rc, output = rc3, out3
     except subprocess.TimeoutExpired:
         return False, "Timeout", None
     except Exception as e:
