@@ -395,98 +395,117 @@ def _is_reel(url: str) -> bool:
 
 
 def download_via_apify(url: str, target_dir: str) -> tuple[int, str]:
-    """Fallback: use Apify Instagram Scraper to get media URLs, then download them.
-    Requires APIFY_API_TOKEN env var.
-    Works reliably for: posts, carousels, stories.
-    Reels require a valid IG_SESSIONID (Instagram blocks video without auth)."""
+    """Two-actor Apify strategy for Instagram.
+
+    1. data-slayer/instagram-post-details  (LjQn99w1uTJa26p3T)
+       → No login required, returns full Instagram API data (photos + videos).
+       Extracts video_versions / image_versions / carousel children.
+
+    2. apify/instagram-scraper  (shu8hvrXbJbY3Eb9W)
+       → Fallback for carousels/posts; proven to work for image posts.
+    """
     token = os.environ.get("APIFY_API_TOKEN", "")
     if not token:
         return 1, "No APIFY_API_TOKEN"
 
-    actor = "shu8hvrXbJbY3Eb9W"  # apify/instagram-scraper (exact actor ID used in account)
-    api_url = (
-        f"https://api.apify.com/v2/acts/{actor}/run-sync-get-dataset-items"
-        f"?token={token}&timeout=120&memory=1024"
-    )
-
-    input_data: dict = {
-        "directUrls": [url],
-        "resultsType": "posts",
-        "resultsLimit": 1,
-        "searchType": "hashtag",
-        "addParentData": False,
-    }
-
-    # For reels, include session cookie if available so Instagram allows video access
-    sessionid = os.environ.get("IG_SESSIONID", "")
-    if sessionid and _is_reel(url):
-        from urllib.parse import unquote as _unquote
-        input_data["loginCookies"] = [
-            {"name": "sessionid", "value": _unquote(sessionid), "domain": ".instagram.com"},
-        ]
-
-    payload = json.dumps(input_data).encode()
-
-    try:
-        req = urllib.request.Request(
-            api_url,
-            data=payload,
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=130) as resp:
-            items = json.loads(resp.read().decode())
-    except Exception as e:
-        return 1, f"Apify request failed: {str(e)[:200]}"
-
-    if not items:
-        return 1, "Apify: no results"
-
-    post = items[0]
-    downloaded = 0
-
     def _fetch(media_url: str, fname: str) -> bool:
-        nonlocal downloaded
         try:
-            r = urllib.request.Request(
-                media_url,
-                headers={"User-Agent": "Mozilla/5.0"},
-            )
+            r = urllib.request.Request(media_url, headers={"User-Agent": "Mozilla/5.0"})
             with urllib.request.urlopen(r, timeout=60) as resp:
                 data = resp.read()
             if data:
                 with open(os.path.join(target_dir, fname), "wb") as f:
                     f.write(data)
-                downloaded += 1
                 return True
         except Exception:
             pass
         return False
 
-    # Single video / reel
-    video_url = post.get("videoUrl")
-    if video_url:
-        _fetch(video_url, "01.mp4")
+    def _run_actor(actor_id: str, payload: dict, timeout: int = 120, memory: int = 512):
+        api_url = (
+            f"https://api.apify.com/v2/acts/{actor_id}/run-sync-get-dataset-items"
+            f"?token={token}&timeout={timeout}&memory={memory}"
+        )
+        req = urllib.request.Request(
+            api_url,
+            data=json.dumps(payload).encode(),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=timeout + 15) as resp:
+            return json.loads(resp.read().decode())
 
-    # Carousel (multiple images/videos)
-    if not downloaded:
-        for i, child in enumerate(post.get("childPosts") or [], start=1):
-            v = child.get("videoUrl")
-            img = child.get("displayUrl") or child.get("thumbnailUrl")
-            if v:
-                _fetch(v, f"{i:02d}.mp4")
-            elif img:
-                _fetch(img, f"{i:02d}.jpg")
+    downloaded = 0
 
-    # Single image fallback
+    # ── Strategy 1: data-slayer (no login, full IG API data) ──────────────
+    try:
+        items = _run_actor("LjQn99w1uTJa26p3T", {"urls": [url]}, timeout=90, memory=512)
+        if items and not items[0].get("error"):
+            post = items[0]
+            is_video = post.get("is_video") or post.get("media_type") == 2
+
+            if is_video:
+                # Video reel: get best quality from video_versions
+                versions = post.get("video_versions") or []
+                best = sorted(versions, key=lambda v: v.get("width", 0), reverse=True)
+                if best and _fetch(best[0]["url"], "01.mp4"):
+                    downloaded += 1
+
+            if not downloaded:
+                # Photo or carousel children
+                children = post.get("carousel_media") or []
+                if children:
+                    for i, child in enumerate(children, start=1):
+                        if child.get("is_video"):
+                            vers = sorted(child.get("video_versions") or [],
+                                          key=lambda v: v.get("width", 0), reverse=True)
+                            if vers and _fetch(vers[0]["url"], f"{i:02d}.mp4"):
+                                downloaded += 1
+                        else:
+                            cands = (child.get("image_versions") or {}).get("candidates") or []
+                            best_img = sorted(cands, key=lambda v: v.get("width", 0), reverse=True)
+                            if best_img and _fetch(best_img[0]["url"], f"{i:02d}.jpg"):
+                                downloaded += 1
+
+            if not downloaded:
+                # Single photo
+                thumb = post.get("thumbnail_url")
+                if thumb and _fetch(thumb, "01.jpg"):
+                    downloaded += 1
+
+    except Exception:
+        pass
+
+    # ── Strategy 2: apify/instagram-scraper (carousels fallback) ──────────
     if not downloaded:
-        img = post.get("displayUrl") or post.get("thumbnailUrl")
-        if img:
-            _fetch(img, "01.jpg")
+        try:
+            items = _run_actor(
+                "shu8hvrXbJbY3Eb9W",
+                {"directUrls": [url], "resultsType": "posts", "resultsLimit": 1,
+                 "searchType": "hashtag", "addParentData": False},
+                timeout=120, memory=1024,
+            )
+            if items and not items[0].get("error"):
+                post = items[0]
+                if post.get("videoUrl") and _fetch(post["videoUrl"], "01.mp4"):
+                    downloaded += 1
+                if not downloaded:
+                    for i, child in enumerate(post.get("childPosts") or [], start=1):
+                        v = child.get("videoUrl")
+                        img = child.get("displayUrl") or child.get("thumbnailUrl")
+                        if v and _fetch(v, f"{i:02d}.mp4"):
+                            downloaded += 1
+                        elif img and _fetch(img, f"{i:02d}.jpg"):
+                            downloaded += 1
+                if not downloaded:
+                    img = post.get("displayUrl") or post.get("thumbnailUrl")
+                    if img and _fetch(img, "01.jpg"):
+                        downloaded += 1
+        except Exception:
+            pass
 
     if downloaded == 0:
-        return 1, "Apify: no media found in post data"
-
+        return 1, "Apify: no se encontró media descargable"
     return 0, f"Apify: {downloaded} archivo(s)"
 
 
