@@ -390,24 +390,42 @@ def file_to_buffer(path: str) -> io.BytesIO:
     return buf
 
 
+def _is_reel(url: str) -> bool:
+    return bool(re.search(r'/reel[s]?/', url, re.IGNORECASE))
+
+
 def download_via_apify(url: str, target_dir: str) -> tuple[int, str]:
     """Fallback: use Apify Instagram Scraper to get media URLs, then download them.
-    Requires APIFY_API_TOKEN env var.  Works for posts, reels, carousels."""
+    Requires APIFY_API_TOKEN env var.
+    Works reliably for: posts, carousels, stories.
+    Reels require a valid IG_SESSIONID (Instagram blocks video without auth)."""
     token = os.environ.get("APIFY_API_TOKEN", "")
     if not token:
         return 1, "No APIFY_API_TOKEN"
 
-    actor = "apify~instagram-scraper"
+    actor = "shu8hvrXbJbY3Eb9W"  # apify/instagram-scraper (exact actor ID used in account)
     api_url = (
         f"https://api.apify.com/v2/acts/{actor}/run-sync-get-dataset-items"
-        f"?token={token}&timeout=120&memory=512"
+        f"?token={token}&timeout=120&memory=1024"
     )
-    payload = json.dumps({
+
+    input_data: dict = {
         "directUrls": [url],
         "resultsType": "posts",
         "resultsLimit": 1,
+        "searchType": "hashtag",
         "addParentData": False,
-    }).encode()
+    }
+
+    # For reels, include session cookie if available so Instagram allows video access
+    sessionid = os.environ.get("IG_SESSIONID", "")
+    if sessionid and _is_reel(url):
+        from urllib.parse import unquote as _unquote
+        input_data["loginCookies"] = [
+            {"name": "sessionid", "value": _unquote(sessionid), "domain": ".instagram.com"},
+        ]
+
+    payload = json.dumps(input_data).encode()
 
     try:
         req = urllib.request.Request(
@@ -474,7 +492,9 @@ def download_via_apify(url: str, target_dir: str) -> tuple[int, str]:
 
 def map_error_response(output: str, platform: str | None) -> tuple[dict, int]:
     low = output.lower()
-    if "login" in low or "private" in low or "401" in output or "logged" in low:
+    if "login" in low or "private" in low or "401" in output or "logged" in low or "restricted_page" in low:
+        if platform == "instagram":
+            return {"error": "Instagram requiere sesión para descargar reels. Los carruseles y posts de fotos funcionan sin problema."}, 401
         return {"error": f"Login requerido o contenido privado en {platform or 'esta plataforma'}."}, 401
     if "429" in output or "rate" in low or "throttl" in low or "wait" in low:
         return {"error": "La plataforma aplicó rate-limit. Espera unos minutos."}, 429
