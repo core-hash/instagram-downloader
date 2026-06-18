@@ -9,7 +9,13 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.4
-      - key: IG_USERNAME
+      # Instagram: exporta tus cookies desde Chrome (extensión "Get cookies.txt LOCALLY"
+      # → exporta instagram.com en Netscape format → base64-encódalo → pégalo aquí)
+      - key: IG_COOKIES
         sync: false
-      - key: IG_PASSWORD
+      # Alternativa más simple: solo el valor de la cookie "sessionid" de instagram.com
+      - key: IG_SESSIONID
+        sync: false
+      # Apify fallback opcional — muy útil para reels/historias
+      - key: APIFY_API_TOKEN
         sync: false
