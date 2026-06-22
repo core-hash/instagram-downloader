@@ -411,17 +411,67 @@ def _extract_ig_story_ids(url: str) -> tuple[str | None, str | None]:
     return None, None
 
 
+def download_via_cobalt(url: str, target_dir: str) -> tuple[int, str]:
+    """cobalt.tools public API — free, no credentials needed, supports IG posts & reels."""
+    COBALT_API = "https://api.cobalt.tools/"
+    headers = {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+    }
+    payload = json.dumps({"url": url, "videoQuality": "max"}).encode()
+    try:
+        req = urllib.request.Request(COBALT_API, data=payload, headers=headers, method="POST")
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode())
+    except Exception as e:
+        return 1, f"cobalt: {str(e)[:120]}"
+
+    status = data.get("status", "")
+    if status == "error":
+        return 1, f"cobalt error: {data.get('error', {}).get('code', 'unknown')}"
+
+    def _fetch(media_url: str, fname: str) -> bool:
+        try:
+            r = urllib.request.Request(media_url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(r, timeout=60) as resp:
+                content = resp.read()
+            if content:
+                with open(os.path.join(target_dir, fname), "wb") as f:
+                    f.write(content)
+                return True
+        except Exception:
+            pass
+        return False
+
+    downloaded = 0
+    if status in ("redirect", "tunnel") and data.get("url"):
+        ext = ".mp4" if "video" in data.get("type", "") else ".jpg"
+        if _fetch(data["url"], f"01{ext}"):
+            downloaded += 1
+    elif status == "picker" and data.get("picker"):
+        for i, item in enumerate(data["picker"], start=1):
+            item_url = item.get("url", "")
+            item_type = item.get("type", "")
+            ext = ".mp4" if item_type == "video" else ".jpg"
+            if item_url and _fetch(item_url, f"{i:02d}{ext}"):
+                downloaded += 1
+
+    if downloaded == 0:
+        return 1, f"cobalt: sin media (status={status})"
+    return 0, f"cobalt: {downloaded} archivo(s)"
+
+
 def download_via_instaloader(url: str, target_dir: str) -> tuple[int, str]:
-    """Instaloader fallback for Instagram. Uses IG_SESSIONID or IG_COOKIES.
-    Handles posts, reels, and stories better than gallery-dl under the new IG auth requirements."""
+    """Instaloader fallback for Instagram. Requires IG_SESSIONID or IG_COOKIES env var.
+    Uses context.update_cookies() (instaloader 4.11+) for correct cookie injection."""
     try:
         import instaloader
     except ImportError:
         return 1, "instaloader not installed"
 
+    # Extract sessionid from env
     sessionid = os.environ.get("IG_SESSIONID", "")
     if not sessionid:
-        # Try to extract from IG_COOKIES
         raw = os.environ.get("IG_COOKIES", "")
         if raw:
             import base64
@@ -435,30 +485,26 @@ def download_via_instaloader(url: str, target_dir: str) -> tuple[int, str]:
                     sessionid = parts[6].strip()
                     break
 
-    L = instaloader.Instaloader(
-        dirname_pattern=target_dir,
-        filename_pattern="{shortcode}_{mediacount}",
-        download_videos=True,
-        download_video_thumbnails=False,
-        download_geotags=False,
-        download_comments=False,
-        save_metadata=False,
-        compress_json=False,
-        post_metadata_txt_pattern="",
-        quiet=True,
-    )
+    if not sessionid:
+        return 1, "instaloader: IG_SESSIONID no configurado"
 
-    if sessionid:
-        try:
-            L.load_session_from_cookies({"sessionid": sessionid})
-        except Exception:
-            try:
-                L.context._session.cookies.set("sessionid", sessionid, domain=".instagram.com")
-            except Exception:
-                pass
-
-    downloaded = 0
+    # Use a separate temp dir so instaloader's subdir structure doesn't affect target_dir
+    il_tmp = tempfile.mkdtemp(prefix="il_")
     try:
+        L = instaloader.Instaloader(
+            download_videos=True,
+            download_video_thumbnails=False,
+            download_geotags=False,
+            download_comments=False,
+            save_metadata=False,
+            compress_json=False,
+            post_metadata_txt_pattern="",
+            quiet=True,
+        )
+        # Inject session cookie via the correct method (4.11+)
+        L.context.update_cookies({"sessionid": sessionid})
+
+        downloaded = 0
         if _is_story(url):
             username, story_id = _extract_ig_story_ids(url)
             if username:
@@ -467,7 +513,7 @@ def download_via_instaloader(url: str, target_dir: str) -> tuple[int, str]:
                     for item in story.get_items():
                         if story_id and str(item.mediaid) != story_id:
                             continue
-                        L.download_storyitem(item, target_dir)
+                        L.download_storyitem(item, il_tmp)
                         downloaded += 1
                         if story_id:
                             break
@@ -475,29 +521,32 @@ def download_via_instaloader(url: str, target_dir: str) -> tuple[int, str]:
             shortcode = _extract_ig_shortcode(url)
             if shortcode:
                 post = instaloader.Post.from_shortcode(L.context, shortcode)
-                L.download_post(post, target=target_dir)
+                L.download_post(post, target=il_tmp)
                 downloaded += 1
+
+        if downloaded == 0:
+            return 1, "instaloader: no media descargada"
+
+        # Move all media files from nested dirs to flat target_dir
+        slot = 1
+        for root, _dirs, files in os.walk(il_tmp):
+            for fname in sorted(files):
+                ext = os.path.splitext(fname)[1].lower()
+                if ext not in MEDIA_EXTS:
+                    continue
+                src = os.path.join(root, fname)
+                dst = os.path.join(target_dir, f"{slot:02d}{ext}")
+                os.replace(src, dst)
+                slot += 1
+
+        if slot == 1:
+            return 1, "instaloader: no media encontrada en directorio"
+        return 0, f"instaloader: {slot - 1} archivo(s)"
+
     except Exception as e:
         return 1, f"instaloader: {str(e)[:200]}"
-
-    # Rename files to numbered format expected by collect_media
-    slot = 1
-    for fname in sorted(os.listdir(target_dir)):
-        fpath = os.path.join(target_dir, fname)
-        if not os.path.isfile(fpath):
-            continue
-        ext = os.path.splitext(fname)[1].lower()
-        if ext not in MEDIA_EXTS or fname.startswith("_"):
-            continue
-        new_name = f"{slot:02d}{ext}"
-        dst = os.path.join(target_dir, new_name)
-        if fname != new_name and not os.path.exists(dst):
-            os.replace(fpath, dst)
-        slot += 1
-
-    if downloaded == 0:
-        return 1, "instaloader: no media descargada"
-    return 0, f"instaloader: {downloaded} item(s)"
+    finally:
+        shutil.rmtree(il_tmp, ignore_errors=True)
 
 
 def download_via_apify(url: str, target_dir: str) -> tuple[int, str]:
@@ -619,7 +668,7 @@ def map_error_response(output: str, platform: str | None) -> tuple[dict, int]:
     low = output.lower()
     if "login" in low or "private" in low or "401" in output or "logged" in low or "restricted_page" in low:
         if platform == "instagram":
-            return {"error": "Instagram bloquea las descargas del servidor. Configura IG_SESSIONID en Render con tu sessionid de Instagram para que funcione."}, 401
+            return {"error": "Instagram requiere sesión. Agrega IG_SESSIONID en Render Environment con el valor de tu cookie sessionid de instagram.com."}, 401
         return {"error": f"Login requerido o contenido privado en {platform or 'esta plataforma'}."}, 401
     if "429" in output or "rate" in low or "throttl" in low or "wait" in low:
         return {"error": "La plataforma aplicó rate-limit. Espera unos minutos."}, 429
@@ -691,16 +740,21 @@ def _process_one(url: str, workdir: str, audio_only: bool = False, max_height: i
                 rc2, out2 = download_via_ytdlp(url, workdir, max_height=max_height)
                 if rc2 == 0 and collect_media(workdir):
                     rc, output = rc2, out2
-            # instaloader fallback for Instagram (handles new IG auth requirements)
+            # cobalt.tools: free public API, no credentials, works for IG posts & reels
             if not collect_media(workdir) and platform == "instagram":
-                rc3, out3 = download_via_instaloader(url, workdir)
+                rc3, out3 = download_via_cobalt(url, workdir)
                 if rc3 == 0 and collect_media(workdir):
                     rc, output = rc3, out3
-            # Apify fallback for Instagram when all local tools fail
+            # instaloader: requires IG_SESSIONID, handles new IG auth requirements
             if not collect_media(workdir) and platform == "instagram":
-                rc4, out4 = download_via_apify(url, workdir)
+                rc4, out4 = download_via_instaloader(url, workdir)
                 if rc4 == 0 and collect_media(workdir):
                     rc, output = rc4, out4
+            # Apify: reliable residential-proxy fallback, requires APIFY_API_TOKEN
+            if not collect_media(workdir) and platform == "instagram":
+                rc5, out5 = download_via_apify(url, workdir)
+                if rc5 == 0 and collect_media(workdir):
+                    rc, output = rc5, out5
     except subprocess.TimeoutExpired:
         return False, "Timeout", None
     except Exception as e:
